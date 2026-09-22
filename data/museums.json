@@ -1,62 +1,102 @@
 [
   {
-    "slug": "shirvanshahs-palace",
+    "id": 1,
+    "slug": "underground-hammam",
     "name": {
-      "az": "Şirvanşahlar Sarayı Kompleksi",
-      "en": "Palace of the Shirvanshahs",
-      "ru": "Дворец Ширваншахов"
+      "az": "Yeraltı Hamam",
+      "en": "Underground Hammam",
+      "ru": "Подземный хаммам"
     },
     "short_description": {
-      "az": "XV əsrə aid saray kompleksi — İçərişəhərin memarlıq incisi və UNESCO Ümumdünya İrsi abidəsi.",
-      "en": "A 15th-century palace complex — the architectural jewel of Icherisheher and a UNESCO World Heritage monument.",
-      "ru": "Дворцовый комплекс XV века — архитектурная жемчужина Ичеришехер и памятник Всемирного наследия ЮНЕСКО."
+      "az": "Məşhur türk səyyahı Övliya Çələbi 1647-ci ildə Bakıda 10 gün qalıb və öz...",
+      "en": "The famous Turkish traveler Ovliya Chelebi stayed in Baku for 10 days in 1647 and in his...",
+      "ru": "Известный турецкий путешественник Овлия Челеби провёл в Баку 10 дней в 1647 году и в своих..."
     },
+    "image": "assets/img/museum-hammam.jpg",
+    "working_hours": "09:00 – 18:00",
+    "rating": 4.9,
+    "ticket_price": "From 10 AZN per person",
     "address": {
-      "az": "Saray döngəsi 76, İçərişəhər, Bakı",
-      "en": "76 Saray Lane, Icherisheher, Baku",
-      "ru": "Дворцовый переулок 76, Ичеришехер, Баку"
+      "az": "Böyük Qala küçəsi, 50",
+      "en": "50, Boyuk Gala Street",
+      "ru": "Улица Бёюк Гала, 50"
     },
-    "is_published": true,
+    "ticket_url": "#",
     "sort_order": 1
   },
   {
-    "slug": "maiden-tower",
+    "id": 2,
+    "slug": "sirataghli-complex",
     "name": {
-      "az": "Qız Qalası",
-      "en": "Maiden Tower",
-      "ru": "Девичья башня"
+      "az": "Sırataghlı dini-memarlıq kompleksi",
+      "en": "The Sirataghli religious-architectural complex",
+      "ru": "Религиозно-архитектурный комплекс Сыраталы"
     },
     "short_description": {
-      "az": "Bakının simvolu — sirli tarixi və panoramik mənzərəsi ilə məşhur qədim qala-muzey.",
-      "en": "The symbol of Baku — an ancient tower museum famed for its mysterious history and panoramic views.",
-      "ru": "Символ Баку — древняя башня-музей, известная своей загадочной историей и панорамным видом."
+      "az": "Sırataghlı dini-memarlıq kompleksi (Bazar meydanı kimi də tanınır)...",
+      "en": "The Sirataghli religious-architectural complex (also known as the Bazaar Square...",
+      "ru": "Религиозно-архитектурный комплекс Сыраталы (также известный как Базарная площадь)..."
     },
+    "image": "assets/img/museum-sirataghli.jpg",
+    "working_hours": "Every day",
+    "rating": 4.5,
+    "ticket_price": "Free",
     "address": {
-      "az": "Asəf Zeynallı küçəsi, İçərişəhər, Bakı",
-      "en": "Asaf Zeynalli Street, Icherisheher, Baku",
-      "ru": "Улица Асафа Зейналлы, Ичеришехер, Баку"
+      "az": "Asəf Zeynallı küçəsi, 69",
+      "en": "69, Asaf Zeynalli Street",
+      "ru": "Улица Асафа Зейналлы, 69"
     },
-    "is_published": true,
+    "ticket_url": "#",
     "sort_order": 2
   },
   {
-    "slug": "miniature-book-museum",
+    "id": 3,
+    "slug": "maiden-tower",
     "name": {
-      "az": "Miniatür Kitab Muzeyi",
-      "en": "Museum of Miniature Books",
-      "ru": "Музей миниатюрной книги"
+      "az": "Qız Qalası",
+      "en": "The Maiden Tower",
+      "ru": "Девичья башня"
     },
     "short_description": {
-      "az": "Dünyada yeganə özəl miniatür kitab muzeyi — Ginnesin Rekordlar Kitabına daxil edilmiş kolleksiya.",
-      "en": "The world's only private museum of miniature books — a collection listed in the Guinness Book of Records.",
-      "ru": "Единственный в мире частный музей миниатюрной книги — коллекция, внесённая в Книгу рекордов Гиннесса."
+      "az": "Sahil Bulvarına yaxın yerləşən Qız Qalası ən qədim...",
+      "en": "Located near the Seaside Boulevard, the Maiden Tower is one of the oldest...",
+      "ru": "Расположенная рядом с Приморским бульваром, Девичья башня — одна из старейших..."
     },
+    "image": "assets/img/museum-maiden-tower.jpg",
+    "working_hours": "09:00 – 19:00",
+    "rating": 5.0,
+    "ticket_price": "From 20 AZN per person",
     "address": {
-      "az": "Qala küçəsi 67, İçərişəhər, Bakı",
-      "en": "67 Gala Street, Icherisheher, Baku",
-      "ru": "Улица Гала 67, Ичеришехер, Баку"
+      "az": "Neftçilər prospekti, 99",
+      "en": "99, Neftchilar Avenue",
+      "ru": "Проспект Нефтяников, 99"
     },
-    "is_published": true,
+    "ticket_url": "#",
     "sort_order": 3
+  },
+  {
+    "id": 4,
+    "slug": "shirvanshahs-palace",
+    "name": {
+      "az": "Şirvanşahlar sarayını kəşf et",
+      "en": "Discover the Palace of the Shirvanshahs",
+      "ru": "Откройте для себя дворец Ширваншахов"
+    },
+    "short_description": {
+      "az": "Bakının Köhnə şəhərində (İçərişəhər) yerləşən Şirvanşahlar Sarayı 15-ci əsrə aid...",
+      "en": "The Palace of the Shirvanshahs, located in Baku's Old City (Icherisheher), is a 15th-...",
+      "ru": "Дворец Ширваншахов, расположенный в Старом городе Баку (Ичеришехер), — это..."
+    },
+    "image": "assets/img/museum-shirvanshahs.jpg",
+    "working_hours": "09:00 – 19:00",
+    "rating": 4.9,
+    "ticket_price": "From 8 AZN per person",
+    "address": {
+      "az": "1-ci Qəsr döngəsi, 76",
+      "en": "76, 1st Gasr Lane",
+      "ru": "1-й Гасар переулок, 76"
+    },
+    "ticket_url": "#",
+    "sort_order": 4
   }
 ]

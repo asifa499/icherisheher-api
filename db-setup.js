@@ -72,21 +72,25 @@ async function runSeed(client) {
   console.log(`Seed complete: ${museums.length} museums upserted.`);
 }
 
-// Idempotent, safe-on-every-boot setup: only migrates + seeds if the
-// museums table doesn't exist yet. No-ops (no crash, no duplicate rows)
-// once the DB has already been set up.
+// Idempotent, safe-on-every-boot setup. Migrations only run the first time
+// (when the museums table doesn't exist yet); the seed step always runs,
+// re-syncing data/museums.json into the table by upserting on slug — existing
+// rows get their changed fields updated, new slugs get inserted, and nothing
+// is ever duplicated. Everything runs in a single transaction.
 async function ensureDatabaseSetup(pool) {
   const client = await pool.connect();
   try {
-    if (await tableExists(client, 'museums')) {
-      console.log('DB already migrated (museums table exists) — skipping auto-setup.');
-      return;
-    }
+    const exists = await tableExists(client, 'museums');
 
-    console.log('museums table not found — running auto migration + seed...');
     await client.query('BEGIN');
     try {
-      await runMigrations(client);
+      if (!exists) {
+        console.log('museums table not found — running migration...');
+        await runMigrations(client);
+      } else {
+        console.log('DB already migrated (museums table exists) — re-syncing seed data...');
+      }
+
       await runSeed(client);
       await client.query('COMMIT');
       console.log('Auto DB setup complete.');
