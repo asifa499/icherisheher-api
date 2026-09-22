@@ -1,0 +1,62 @@
+[
+  {
+    "slug": "shirvanshahs-palace",
+    "name": {
+      "az": "Şirvanşahlar Sarayı Kompleksi",
+      "en": "Palace of the Shirvanshahs",
+      "ru": "Дворец Ширваншахов"
+    },
+    "short_description": {
+      "az": "XV əsrə aid saray kompleksi — İçərişəhərin memarlıq incisi və UNESCO Ümumdünya İrsi abidəsi.",
+      "en": "A 15th-century palace complex — the architectural jewel of Icherisheher and a UNESCO World Heritage monument.",
+      "ru": "Дворцовый комплекс XV века — архитектурная жемчужина Ичеришехер и памятник Всемирного наследия ЮНЕСКО."
+    },
+    "address": {
+      "az": "Saray döngəsi 76, İçərişəhər, Bakı",
+      "en": "76 Saray Lane, Icherisheher, Baku",
+      "ru": "Дворцовый переулок 76, Ичеришехер, Баку"
+    },
+    "is_published": true,
+    "sort_order": 1
+  },
+  {
+    "slug": "maiden-tower",
+    "name": {
+      "az": "Qız Qalası",
+      "en": "Maiden Tower",
+      "ru": "Девичья башня"
+    },
+    "short_description": {
+      "az": "Bakının simvolu — sirli tarixi və panoramik mənzərəsi ilə məşhur qədim qala-muzey.",
+      "en": "The symbol of Baku — an ancient tower museum famed for its mysterious history and panoramic views.",
+      "ru": "Символ Баку — древняя башня-музей, известная своей загадочной историей и панорамным видом."
+    },
+    "address": {
+      "az": "Asəf Zeynallı küçəsi, İçərişəhər, Bakı",
+      "en": "Asaf Zeynalli Street, Icherisheher, Baku",
+      "ru": "Улица Асафа Зейналлы, Ичеришехер, Баку"
+    },
+    "is_published": true,
+    "sort_order": 2
+  },
+  {
+    "slug": "miniature-book-museum",
+    "name": {
+      "az": "Miniatür Kitab Muzeyi",
+      "en": "Museum of Miniature Books",
+      "ru": "Музей миниатюрной книги"
+    },
+    "short_description": {
+      "az": "Dünyada yeganə özəl miniatür kitab muzeyi — Ginnesin Rekordlar Kitabına daxil edilmiş kolleksiya.",
+      "en": "The world's only private museum of miniature books — a collection listed in the Guinness Book of Records.",
+      "ru": "Единственный в мире частный музей миниатюрной книги — коллекция, внесённая в Книгу рекордов Гиннесса."
+    },
+    "address": {
+      "az": "Qala küçəsi 67, İçərişəhər, Bakı",
+      "en": "67 Gala Street, Icherisheher, Baku",
+      "ru": "Улица Гала 67, Ичеришехер, Баку"
+    },
+    "is_published": true,
+    "sort_order": 3
+  }
+]

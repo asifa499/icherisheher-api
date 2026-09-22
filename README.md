@@ -1,0 +1,100 @@
+# icherisheher-api
+
+İçərişəhər Digital Experience Ecosystem — public REST API.
+Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
+
+## Stack
+
+- Node.js ≥ 18, Express 4
+- PostgreSQL via `pg` (Pool), Railway-hosted
+- Trilingual content stored as JSONB: `{"az": "...", "en": "...", "ru": "..."}`
+
+## Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `DATABASE_URL` | ✅ | PostgreSQL connection string. On Railway, use the reference `${{Postgres.DATABASE_URL}}` from the Postgres service. SSL is applied automatically for public URLs and skipped for `railway.internal` / localhost. |
+| `PORT` | — | Server port. Railway injects it automatically; defaults to `3000` locally. |
+
+Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
+
+## Setup
+
+```bash
+npm install
+npm run migrate   # creates the museums table (migrations/*.sql in order)
+npm run seed      # imports data/museums.json (upsert by slug)
+npm start         # starts the server
+```
+
+> **Note:** `data/museums.json` currently holds placeholder content (3 museums)
+> in the correct trilingual format. Replace it with the real file from the
+> frontend project and re-run `npm run seed` — the seed upserts by `slug`,
+> so re-running is safe.
+
+## Endpoints
+
+### `GET /api/health`
+Liveness + DB check. Returns `{ status, db, timestamp }`. `503` if DB is unreachable.
+
+### `GET /api/museums?lang=az|en|ru`
+Published museums only (`is_published = TRUE`), ordered by `sort_order`.
+
+- With `?lang=` — trilingual fields are flattened to that language (fallback: `az`).
+- Without `?lang=` — full trilingual objects are returned.
+
+```json
+{
+  "count": 3,
+  "lang": "en",
+  "data": [
+    {
+      "id": 1,
+      "slug": "shirvanshahs-palace",
+      "name": "Palace of the Shirvanshahs",
+      "short_description": "...",
+      "address": "76 Saray Lane, Icherisheher, Baku",
+      "sort_order": 1
+    }
+  ]
+}
+```
+
+### `GET /api/museums/:slug?lang=az|en|ru`
+Single published museum by slug. `404` if missing or unpublished.
+
+## CORS
+
+Allowlist only:
+- `https://asifa499.github.io`
+- `http(s)://localhost:*` and `http(s)://127.0.0.1:*` (development)
+
+Requests without an `Origin` header (curl, health checks) are allowed.
+
+## Database schema
+
+`migrations/001_create_museums.sql`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | SERIAL PK | |
+| `slug` | TEXT UNIQUE | URL identifier |
+| `name` | JSONB | `{az, en, ru}` |
+| `short_description` | JSONB | `{az, en, ru}` |
+| `address` | JSONB | `{az, en, ru}` |
+| `is_published` | BOOLEAN | default `TRUE` |
+| `sort_order` | INTEGER | default `0` |
+| `created_at` | TIMESTAMPTZ | default `NOW()` |
+| `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+## Deploy to Railway
+
+1. Create a new Railway service from `asifa499/icherisheher-api` (GitHub).
+2. Add a PostgreSQL database to the project (or reuse the existing one from `icherisheher-pm` — a separate DB is recommended).
+3. On the API service, set `DATABASE_URL = ${{Postgres.DATABASE_URL}}`.
+4. Railway runs `npm install` and `npm start` automatically.
+5. One-time, from the service shell (or locally against the public DB URL):
+   ```bash
+   npm run migrate && npm run seed
+   ```
+6. Verify: `https://<service-domain>/api/health`
