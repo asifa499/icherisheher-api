@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
+const { ensureDatabaseSetup } = require('./db-setup');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +60,14 @@ function fullMuseum(row) {
 }
 
 // --- Routes ---
+app.get('/', (req, res) => {
+  res.json({
+    name: 'icherisheher-api',
+    status: 'ok',
+    endpoints: ['GET /api/health', 'GET /api/museums', 'GET /api/museums/:slug'],
+  });
+});
+
 app.get('/api/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
@@ -141,6 +150,17 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`icherisheher-api listening on port ${PORT}`);
-});
+async function start() {
+  try {
+    await ensureDatabaseSetup(pool);
+  } catch (err) {
+    console.error('Database auto-setup failed:', err);
+    process.exit(1);
+  }
+
+  app.listen(PORT, () => {
+    console.log(`icherisheher-api listening on port ${PORT}`);
+  });
+}
+
+start();

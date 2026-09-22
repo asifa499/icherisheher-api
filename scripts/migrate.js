@@ -1,24 +1,16 @@
 // Runs every .sql file in /migrations in filename order.
 // Usage: npm run migrate
-const fs = require('fs');
-const path = require('path');
 const pool = require('../db');
+const { runMigrations } = require('../db-setup');
 
 async function migrate() {
-  const dir = path.join(__dirname, '..', 'migrations');
-  const files = fs
-    .readdirSync(dir)
-    .filter((f) => f.endsWith('.sql'))
-    .sort();
-
-  for (const file of files) {
-    const sql = fs.readFileSync(path.join(dir, file), 'utf8');
-    console.log(`→ Running ${file} ...`);
-    await pool.query(sql);
-    console.log(`✓ ${file} done`);
+  const client = await pool.connect();
+  try {
+    await runMigrations(client);
+  } finally {
+    client.release();
+    await pool.end();
   }
-
-  await pool.end();
   console.log('All migrations applied.');
 }
 
