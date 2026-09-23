@@ -1,7 +1,7 @@
 {
   "name": "icherisheher-api",
   "version": "1.0.0",
-  "description": "İçərişəhər Digital Experience Ecosystem — public REST API (museums, routes, events)",
+  "description": "İçərişəhər Digital Experience Ecosystem — public REST API (museums, routes, events, news)",
   "main": "server.js",
   "engines": {
     "node": ">=18"

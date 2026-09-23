@@ -1,7 +1,7 @@
 # icherisheher-api
 
 İçərişəhər Digital Experience Ecosystem — public REST API.
-Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route and event content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
+Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route, event and news content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
 
 ## Stack
 
@@ -22,13 +22,13 @@ Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
 ```bash
 npm install
-npm run migrate   # creates the museums + routes + events tables (migrations/*.sql in order)
-npm run seed      # imports data/museums.json + data/routes.json + data/events.json (upsert by slug)
+npm run migrate   # creates the museums + routes + events + news tables (migrations/*.sql in order)
+npm run seed      # imports data/museums.json + data/routes.json + data/events.json + data/news.json (upsert by slug)
 npm start         # starts the server
 ```
 
-> **Note:** `data/museums.json`, `data/routes.json` and `data/events.json` are
-> synced from the `icherisheher-home` frontend repo. The boot-time auto-setup re-runs the seed
+> **Note:** `data/museums.json`, `data/routes.json`, `data/events.json` and
+> `data/news.json` are synced from the `icherisheher-home` frontend repo. The boot-time auto-setup re-runs the seed
 > on every start — it upserts by `slug`, so refreshing these files and
 > redeploying is always safe (existing rows get updated, new slugs get
 > inserted, nothing is duplicated).
@@ -154,6 +154,47 @@ match the frontend's `data/events.json` exactly.
 ### `GET /api/events/:slug?lang=az|en|ru`
 Single published event by slug. `404` if missing or unpublished.
 
+### `GET /api/news?lang=az|en|ru&type=review|news|announcement`
+Published news only (`is_published = TRUE`), newest first (`published_date`
+descending; undated items last). Same contract as `/api/museums` — with
+`?lang=` the trilingual fields are flattened to that language (fallback:
+`az`); without `?lang=` the full trilingual objects are returned.
+
+The optional `?type=` filter narrows the list to one kind: `review`, `news` or
+`announcement`. An unsupported value returns `400`.
+
+```json
+{
+  "count": 3,
+  "lang": "en",
+  "type": "announcement",
+  "data": [
+    {
+      "id": 10,
+      "slug": "winter-opening-hours",
+      "type": "announcement",
+      "title": "Winter opening hours come into effect",
+      "excerpt": "From 1 November the museums receive visitors from 10:00 to 17:00.",
+      "image": "assets/img/resource-craftsmen.jpg",
+      "image_position": null,
+      "published_date": "2026-09-20",
+      "source": "placeholder",
+      "sort_order": 1
+    }
+  ]
+}
+```
+
+`type`, `image`, `image_position`, `published_date` and `source` are plain
+values (not trilingual) — only `title` and `excerpt` are localized per
+`{az, en, ru}`. `published_date` is stored as a `DATE` column and always
+serialized as a plain `YYYY-MM-DD` string (never a timestamp), so it matches
+the frontend's `data/news.json` exactly. `sort_order` is scoped per `type`, so
+it only orders items that share a date within the same kind.
+
+### `GET /api/news/:slug?lang=az|en|ru`
+Single published news item by slug. `404` if missing or unpublished.
+
 ## CORS
 
 Allowlist only:
@@ -218,6 +259,24 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `image` | TEXT | plain string, not localized |
 | `ticket_url` | TEXT | plain string, not localized |
 | `source` | TEXT | provenance tag, e.g. `figma` / `draft` |
+| `is_published` | BOOLEAN | default `TRUE` |
+| `sort_order` | INTEGER | default `0` |
+| `created_at` | TIMESTAMPTZ | default `NOW()` |
+| `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+`migrations/005_create_news.sql`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | SERIAL PK | |
+| `slug` | TEXT UNIQUE | URL identifier |
+| `type` | TEXT | `review` / `news` / `announcement` (CHECK constraint), default `news` |
+| `title` | JSONB | `{az, en, ru}` |
+| `excerpt` | JSONB | `{az, en, ru}` |
+| `image` | TEXT | plain string, not localized |
+| `image_position` | TEXT | CSS `object-position`, e.g. `26% center` |
+| `published_date` | DATE | calendar date, served as `YYYY-MM-DD` |
+| `source` | TEXT | provenance tag, e.g. `figma` / `placeholder` |
 | `is_published` | BOOLEAN | default `TRUE` |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |

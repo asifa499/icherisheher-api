@@ -9,6 +9,7 @@ const PORT = process.env.PORT || 3000;
 
 const SUPPORTED_LANGS = ['az', 'en', 'ru'];
 const DEFAULT_LANG = 'az';
+const NEWS_TYPES = ['review', 'news', 'announcement'];
 
 // Express auto-generates an ETag for every JSON response and answers matching
 // If-None-Match requests with a bare 304 (no body). Browsers were treating
@@ -166,6 +167,38 @@ function fullEvent(row) {
   };
 }
 
+function localizeNews(row, lang) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    type: row.type,
+    title: pickLang(row.title, lang),
+    excerpt: pickLang(row.excerpt, lang),
+    image: row.image,
+    image_position: row.image_position,
+    published_date: row.published_date,
+    source: row.source,
+    sort_order: row.sort_order,
+  };
+}
+
+function fullNews(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    type: row.type,
+    title: row.title,
+    excerpt: row.excerpt,
+    image: row.image,
+    image_position: row.image_position,
+    published_date: row.published_date,
+    source: row.source,
+    sort_order: row.sort_order,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 // --- Routes ---
 app.get('/', (req, res) => {
   res.json({
@@ -179,6 +212,8 @@ app.get('/', (req, res) => {
       'GET /api/routes/:slug',
       'GET /api/events',
       'GET /api/events/:slug',
+      'GET /api/news',
+      'GET /api/news/:slug',
     ],
   });
 });
@@ -388,6 +423,80 @@ app.get('/api/events/:slug', async (req, res) => {
     res.json(lang ? localizeEvent(rows[0], lang) : fullEvent(rows[0]));
   } catch (err) {
     console.error(`GET /api/events/${slug} failed:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/news?lang=az|en|ru&type=review|news|announcement
+// Published only, newest first (published_date DESC; undated items last).
+// Same contract as the other collections — with ?lang= the trilingual JSONB
+// fields are flattened to that language (fallback: az); without ?lang= the
+// full trilingual objects are returned. The optional ?type= filter narrows to
+// one of the three news kinds.
+app.get('/api/news', async (req, res) => {
+  const { lang, type } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  if (type && !NEWS_TYPES.includes(type)) {
+    return res.status(400).json({
+      error: `Unsupported type "${type}". Supported: ${NEWS_TYPES.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, type, title, excerpt, image, image_position,
+              TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
+              source, sort_order, created_at, updated_at
+         FROM news
+        WHERE is_published = TRUE
+          AND ($1::text IS NULL OR type = $1)
+        ORDER BY published_date DESC NULLS LAST, sort_order ASC, id ASC`,
+      [type || null]
+    );
+
+    const data = lang ? rows.map((r) => localizeNews(r, lang)) : rows.map(fullNews);
+    res.json({ count: data.length, lang: lang || null, type: type || null, data });
+  } catch (err) {
+    console.error('GET /api/news failed:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/news/:slug?lang=az|en|ru
+app.get('/api/news/:slug', async (req, res) => {
+  const { slug } = req.params;
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, type, title, excerpt, image, image_position,
+              TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
+              source, sort_order, created_at, updated_at
+         FROM news
+        WHERE slug = $1 AND is_published = TRUE
+        LIMIT 1`,
+      [slug]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'News item not found' });
+    }
+
+    res.json(lang ? localizeNews(rows[0], lang) : fullNews(rows[0]));
+  } catch (err) {
+    console.error(`GET /api/news/${slug} failed:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

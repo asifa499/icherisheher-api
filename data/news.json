@@ -1,0 +1,238 @@
+[
+  {
+    "id": 1,
+    "slug": "a-day-inside-medieval-baku",
+    "type": "review",
+    "source": "figma",
+    "title": {
+      "az": "Orta əsr Bakısında bir gün",
+      "en": "A day inside medieval Baku",
+      "ru": "День в средневековом Баку"
+    },
+    "excerpt": {
+      "az": "Karvansaray həyətindən hamama qədər — İçərişəhər sakininin gündəlik marşrutu.",
+      "en": "From the caravanserai courtyard to the bathhouse — the daily route of an Icherisheher resident.",
+      "ru": "От двора караван-сарая до бани — ежедневный маршрут жителя Ичеришехер."
+    },
+    "image": "assets/img/resource-medieval-baku.jpg",
+    "image_position": "26% center",
+    "published_date": "2026-09-08",
+    "sort_order": 1
+  },
+  {
+    "id": 2,
+    "slug": "why-are-the-streets-so-narrow",
+    "type": "review",
+    "source": "figma",
+    "title": {
+      "az": "İçərişəhərin küçələri niyə bu qədər dardır?",
+      "en": "Why are the streets of Icherisheher so narrow?",
+      "ru": "Почему улицы Ичеришехер такие узкие?"
+    },
+    "excerpt": {
+      "az": "Kölgə, külək və müdafiə — dar küçələrin arxasındakı üç sadə səbəb.",
+      "en": "Shade, wind and defence — the three plain reasons behind the narrow lanes.",
+      "ru": "Тень, ветер и оборона — три простые причины узких улиц."
+    },
+    "image": "assets/img/resource-narrow-streets.jpg",
+    "image_position": "55% 85%",
+    "published_date": "2026-08-27",
+    "sort_order": 2
+  },
+  {
+    "id": 3,
+    "slug": "who-lived-inside-the-maiden-tower",
+    "type": "review",
+    "source": "figma",
+    "title": {
+      "az": "Qız Qalasının içində kim yaşayıb?",
+      "en": "Who lived inside the Maiden Tower?",
+      "ru": "Кто жил внутри Девичьей башни?"
+    },
+    "excerpt": {
+      "az": "Mərtəbə-mərtəbə: qalanın sakinləri, quyusu və hələ də açılmamış sualları.",
+      "en": "Floor by floor: the tower's inhabitants, its well, and the questions still open.",
+      "ru": "Этаж за этажом: обитатели башни, её колодец и до сих пор открытые вопросы."
+    },
+    "image": "assets/img/resource-maiden-tower.jpg",
+    "image_position": "51% 23%",
+    "published_date": "2026-08-14",
+    "sort_order": 3
+  },
+  {
+    "id": 4,
+    "slug": "symbols-hidden-on-the-walls",
+    "type": "review",
+    "source": "figma",
+    "title": {
+      "az": "İçərişəhərin divarlarındakı gizli simvollar",
+      "en": "The symbols hidden on Icherisheher’s walls",
+      "ru": "Символы, спрятанные на стенах Ичеришехер"
+    },
+    "excerpt": {
+      "az": "Daş üzərindəki nişanlar: ustad möhürləri, heyvan fiqurları və onların mənası.",
+      "en": "Marks cut into stone: mason's seals, animal figures and what they meant.",
+      "ru": "Знаки на камне: клейма мастеров, фигуры животных и их значение."
+    },
+    "image": "assets/img/resource-wall-symbols.jpg",
+    "published_date": "2026-07-30",
+    "sort_order": 4
+  },
+  {
+    "id": 5,
+    "slug": "when-baku-stood-on-the-silk-road",
+    "type": "review",
+    "source": "figma",
+    "title": {
+      "az": "Bakı İpək Yolunun üstündə olanda",
+      "en": "When Baku stood on the Silk Road",
+      "ru": "Когда Баку стоял на Шёлковом пути"
+    },
+    "excerpt": {
+      "az": "Karvansaraylar, tacirlər və limanı şəhərə bağlayan yük yolları.",
+      "en": "Caravanserais, merchants and the cargo routes that tied the port to the city.",
+      "ru": "Караван-сараи, купцы и грузовые пути, связавшие порт с городом."
+    },
+    "image": "assets/img/resource-silk-road.jpg",
+    "published_date": "2026-07-16",
+    "sort_order": 5
+  },
+  {
+    "id": 6,
+    "slug": "the-craftsmen-who-built-the-old-city",
+    "type": "review",
+    "source": "figma",
+    "title": {
+      "az": "Köhnə şəhəri tikən ustalar",
+      "en": "The craftsmen who built the Old City",
+      "ru": "Мастера, построившие Старый город"
+    },
+    "excerpt": {
+      "az": "Daşyonan, dulusçu, misgər — İçərişəhəri formalaşdıran sənətkar nəsilləri.",
+      "en": "Stonecutters, potters, coppersmiths — the guild families that shaped Icherisheher.",
+      "ru": "Камнерезы, гончары, медники — ремесленные семьи, создавшие Ичеришехер."
+    },
+    "image": "assets/img/resource-craftsmen.jpg",
+    "published_date": "2026-07-02",
+    "sort_order": 6
+  },
+
+  {
+    "id": 7,
+    "slug": "maiden-tower-restoration-stage-completed",
+    "type": "news",
+    "source": "placeholder",
+    "title": {
+      "az": "Qız Qalasında bərpa işlərinin növbəti mərhələsi başa çatdı",
+      "en": "A new restoration stage at the Maiden Tower is complete",
+      "ru": "Завершён очередной этап реставрации Девичьей башни"
+    },
+    "excerpt": {
+      "az": "Qalanın yuxarı mərtəbələrində daş üzlüyün möhkəmləndirilməsi yekunlaşıb.",
+      "en": "Consolidation of the stonework on the tower's upper floors has been finished.",
+      "ru": "Завершено укрепление каменной кладки на верхних этажах башни."
+    },
+    "image": "assets/img/resource-maiden-tower.jpg",
+    "image_position": "51% 23%",
+    "published_date": "2026-09-18",
+    "sort_order": 1
+  },
+  {
+    "id": 8,
+    "slug": "new-night-lighting-in-the-old-city",
+    "type": "news",
+    "source": "placeholder",
+    "title": {
+      "az": "İçərişəhərdə yeni gecə işıqlandırması",
+      "en": "New night lighting across the Old City",
+      "ru": "Новое ночное освещение в Старом городе"
+    },
+    "excerpt": {
+      "az": "Qala divarları və əsas küçələr üçün enerjiyə qənaətli işıqlandırma quraşdırılıb.",
+      "en": "Energy-efficient lighting has been installed along the walls and main lanes.",
+      "ru": "Вдоль стен и главных улиц установлено энергоэффективное освещение."
+    },
+    "image": "assets/img/resource-narrow-streets.jpg",
+    "image_position": "55% 85%",
+    "published_date": "2026-09-05",
+    "sort_order": 2
+  },
+  {
+    "id": 9,
+    "slug": "record-number-of-visitors-this-summer",
+    "type": "news",
+    "source": "placeholder",
+    "title": {
+      "az": "Bu yay İçərişəhəri rekord sayda qonaq ziyarət edib",
+      "en": "A record number of visitors came this summer",
+      "ru": "Этим летом Ичеришехер посетило рекордное число гостей"
+    },
+    "excerpt": {
+      "az": "Muzeylər və gəzinti marşrutları üzrə yay mövsümünün yekun rəqəmləri.",
+      "en": "Summer season figures for the museums and the walking routes.",
+      "ru": "Итоговые цифры летнего сезона по музеям и прогулочным маршрутам."
+    },
+    "image": "assets/img/resource-medieval-baku.jpg",
+    "image_position": "26% center",
+    "published_date": "2026-08-21",
+    "sort_order": 3
+  },
+
+  {
+    "id": 10,
+    "slug": "winter-opening-hours",
+    "type": "announcement",
+    "source": "placeholder",
+    "title": {
+      "az": "Qış iş qrafiki qüvvəyə minir",
+      "en": "Winter opening hours come into effect",
+      "ru": "Вступает в силу зимний график работы"
+    },
+    "excerpt": {
+      "az": "1 noyabrdan muzeylər saat 10:00–17:00 arası qonaq qəbul edir.",
+      "en": "From 1 November the museums receive visitors from 10:00 to 17:00.",
+      "ru": "С 1 ноября музеи принимают посетителей с 10:00 до 17:00."
+    },
+    "image": "assets/img/resource-craftsmen.jpg",
+    "published_date": "2026-09-20",
+    "sort_order": 1
+  },
+  {
+    "id": 11,
+    "slug": "temporary-closure-of-the-caravanserai-courtyard",
+    "type": "announcement",
+    "source": "placeholder",
+    "title": {
+      "az": "Karvansaray həyəti müvəqqəti bağlıdır",
+      "en": "The caravanserai courtyard is temporarily closed",
+      "ru": "Двор караван-сарая временно закрыт"
+    },
+    "excerpt": {
+      "az": "Təmir işləri ilə əlaqədar həyət oktyabrın sonuna qədər ziyarətə bağlıdır.",
+      "en": "Due to maintenance work the courtyard stays closed until the end of October.",
+      "ru": "В связи с ремонтными работами двор закрыт до конца октября."
+    },
+    "image": "assets/img/resource-silk-road.jpg",
+    "published_date": "2026-09-12",
+    "sort_order": 2
+  },
+  {
+    "id": 12,
+    "slug": "open-call-for-guided-tour-volunteers",
+    "type": "announcement",
+    "source": "placeholder",
+    "title": {
+      "az": "Bələdçi könüllüləri üçün müraciət qəbulu",
+      "en": "Open call for guided tour volunteers",
+      "ru": "Открыт приём заявок для волонтёров-гидов"
+    },
+    "excerpt": {
+      "az": "Payız mövsümü üçün könüllü bələdçilərin qeydiyyatı başlayıb.",
+      "en": "Registration for volunteer guides for the autumn season is now open.",
+      "ru": "Началась регистрация волонтёров-гидов на осенний сезон."
+    },
+    "image": "assets/img/resource-wall-symbols.jpg",
+    "published_date": "2026-08-30",
+    "sort_order": 3
+  }
+]
