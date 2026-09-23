@@ -1,0 +1,157 @@
+[
+  {
+    "id": 1,
+    "slug": "lens-of-victory-photo-exhibition",
+    "source": "figma",
+    "title": {
+      "az": "Tofiq Babayevin “Qələbənin obyektivi” foto sərgisi",
+      "en": "Tofiq Babayev’s “The Lens of Victory” photo exhibition",
+      "ru": "Фотовыставка Тофига Бабаева «Объектив Победы»"
+    },
+    "description": {
+      "az": "Tofiq Babayevin sənədli kadrlarından ibarət foto sərgi — Qələbə günlərinin insan siması.",
+      "en": "A documentary photo exhibition by Tofiq Babayev — the human face of the days of victory.",
+      "ru": "Документальная фотовыставка Тофига Бабаева — человеческое лицо дней Победы."
+    },
+    "category": {
+      "az": "Mədəniyyət",
+      "en": "Cultural",
+      "ru": "Культура"
+    },
+    "venue": {
+      "az": "Maqsud İ. Yaradıcılıq Mərkəzi",
+      "en": "Maqsud I. Creative Center",
+      "ru": "Творческий центр Магсуда И."
+    },
+    "start_date": "2026-03-21",
+    "end_date": "2026-03-21",
+    "time": "16:30",
+    "image": "assets/img/event-lens-of-victory.jpg",
+    "ticket_url": "#",
+    "sort_order": 1
+  },
+  {
+    "id": 2,
+    "slug": "jahongir-ashurov-masterclass",
+    "source": "figma",
+    "title": {
+      "az": "Cahangir Aşurovla görüş və ustad dərsi",
+      "en": "A Meeting and Masterclass with Jahongir Ashurov",
+      "ru": "Встреча и мастер-класс с Джахонгиром Ашуровым"
+    },
+    "description": {
+      "az": "Miniatür sənəti üzrə ustad dərsi və müəlliflə açıq söhbət.",
+      "en": "A masterclass in miniature art followed by an open conversation with the artist.",
+      "ru": "Мастер-класс по искусству миниатюры и открытая беседа с художником."
+    },
+    "category": {
+      "az": "Mədəniyyət",
+      "en": "Cultural",
+      "ru": "Культура"
+    },
+    "venue": {
+      "az": "Bakı Fotoqrafiya Evi",
+      "en": "Baku Photography House",
+      "ru": "Бакинский дом фотографии"
+    },
+    "start_date": "2026-03-21",
+    "end_date": "2026-03-21",
+    "time": "16:30",
+    "image": "assets/img/event-jahongir-masterclass.jpg",
+    "ticket_url": "#",
+    "sort_order": 2
+  },
+  {
+    "id": 3,
+    "slug": "old-city-run-2026",
+    "source": "figma",
+    "title": {
+      "az": "İçərişəhər qaçışı 2026",
+      "en": "Old City Run 2026",
+      "ru": "Забег по Старому городу 2026"
+    },
+    "description": {
+      "az": "Qala divarları boyunca keçən illik kütləvi qaçış — bütün yaş qrupları üçün.",
+      "en": "The annual mass run along the fortress walls — open to every age group.",
+      "ru": "Ежегодный массовый забег вдоль крепостных стен — для всех возрастов."
+    },
+    "category": {
+      "az": "İdman",
+      "en": "Sport",
+      "ru": "Спорт"
+    },
+    "venue": {
+      "az": "Qoşa Qala Qapıları",
+      "en": "Qoşa Qala Gates",
+      "ru": "Ворота Гоша Гала"
+    },
+    "start_date": "2026-05-16",
+    "end_date": "2026-05-16",
+    "time": "09:00",
+    "image": null,
+    "ticket_url": "#",
+    "sort_order": 3
+  },
+  {
+    "id": 4,
+    "slug": "mugham-concert-night",
+    "source": "figma",
+    "title": {
+      "az": "Muğam gecəsi",
+      "en": "Mugham concert night",
+      "ru": "Вечер мугама"
+    },
+    "description": {
+      "az": "Qız Qalasının ətəyində açıq havada muğam konserti.",
+      "en": "An open-air mugham concert at the foot of the Maiden Tower.",
+      "ru": "Концерт мугама под открытым небом у подножия Девичьей башни."
+    },
+    "category": {
+      "az": "Musiqi",
+      "en": "Music",
+      "ru": "Музыка"
+    },
+    "venue": {
+      "az": "Qız Qalası",
+      "en": "Maiden Tower",
+      "ru": "Девичья башня"
+    },
+    "start_date": "2026-05-28",
+    "end_date": "2026-05-28",
+    "time": "19:00",
+    "image": null,
+    "ticket_url": "#",
+    "sort_order": 4
+  },
+  {
+    "id": 5,
+    "slug": "carpet-weaving-class",
+    "source": "figma",
+    "title": {
+      "az": "Xalçatoxuma dərsi",
+      "en": "Carpet-weaving class",
+      "ru": "Мастер-класс по ковроткачеству"
+    },
+    "description": {
+      "az": "Ustad xalçaçıların müşayiəti ilə praktik toxuma emalatxanası.",
+      "en": "A hands-on weaving workshop guided by master carpet-makers.",
+      "ru": "Практическая ткацкая мастерская под руководством мастеров-ковроделов."
+    },
+    "category": {
+      "az": "Emalatxana",
+      "en": "Workshop",
+      "ru": "Мастер-класс"
+    },
+    "venue": {
+      "az": "Qoşa Qala Qapıları",
+      "en": "Qoşa Qala Gates",
+      "ru": "Ворота Гоша Гала"
+    },
+    "start_date": "2026-06-12",
+    "end_date": "2026-06-12",
+    "time": "14:00",
+    "image": null,
+    "ticket_url": "#",
+    "sort_order": 5
+  }
+]

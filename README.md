@@ -1,7 +1,7 @@
 # icherisheher-api
 
 İçərişəhər Digital Experience Ecosystem — public REST API.
-Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum and route content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
+Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route and event content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
 
 ## Stack
 
@@ -22,13 +22,13 @@ Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
 ```bash
 npm install
-npm run migrate   # creates the museums + routes tables (migrations/*.sql in order)
-npm run seed      # imports data/museums.json + data/routes.json (upsert by slug)
+npm run migrate   # creates the museums + routes + events tables (migrations/*.sql in order)
+npm run seed      # imports data/museums.json + data/routes.json + data/events.json (upsert by slug)
 npm start         # starts the server
 ```
 
-> **Note:** `data/museums.json` and `data/routes.json` are synced from the
-> `icherisheher-home` frontend repo. The boot-time auto-setup re-runs the seed
+> **Note:** `data/museums.json`, `data/routes.json` and `data/events.json` are
+> synced from the `icherisheher-home` frontend repo. The boot-time auto-setup re-runs the seed
 > on every start — it upserts by `slug`, so refreshing these files and
 > redeploying is always safe (existing rows get updated, new slugs get
 > inserted, nothing is duplicated).
@@ -115,6 +115,45 @@ localized per `{az, en, ru}`. `tags` is a plain string array.
 ### `GET /api/routes/:slug?lang=az|en|ru`
 Single published route by slug. `404` if missing or unpublished.
 
+### `GET /api/events?lang=az|en|ru`
+Published events only (`is_published = TRUE`), ordered by `start_date` (soonest
+first; events with no date sort last). Same contract as `/api/museums` — with
+`?lang=` the trilingual fields are flattened to that language (fallback: `az`);
+without `?lang=` the full trilingual objects are returned.
+
+```json
+{
+  "count": 5,
+  "lang": "en",
+  "data": [
+    {
+      "id": 4,
+      "slug": "mugham-concert-night",
+      "title": "Mugham concert night",
+      "description": "An open-air mugham concert at the foot of the Maiden Tower.",
+      "category": "Music",
+      "venue": "Maiden Tower",
+      "start_date": "2026-05-28",
+      "end_date": "2026-05-28",
+      "time": "19:00",
+      "image": null,
+      "ticket_url": "#",
+      "source": "figma",
+      "sort_order": 4
+    }
+  ]
+}
+```
+
+`start_date`, `end_date`, `time`, `image`, `ticket_url` and `source` are plain
+values (not trilingual) — only `title`, `description`, `category` and `venue`
+are localized per `{az, en, ru}`. The two dates are stored as `DATE` columns
+and always serialized as plain `YYYY-MM-DD` strings (never timestamps), so they
+match the frontend's `data/events.json` exactly.
+
+### `GET /api/events/:slug?lang=az|en|ru`
+Single published event by slug. `404` if missing or unpublished.
+
 ## CORS
 
 Allowlist only:
@@ -157,6 +196,27 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `stops` | JSONB | array of `{name: {az,en,ru}, description: {az,en,ru}, image, sort_order}` |
 | `image` | TEXT | plain string, not localized |
 | `pass_url` | TEXT | plain string, not localized |
+| `source` | TEXT | provenance tag, e.g. `figma` / `draft` |
+| `is_published` | BOOLEAN | default `TRUE` |
+| `sort_order` | INTEGER | default `0` |
+| `created_at` | TIMESTAMPTZ | default `NOW()` |
+| `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+`migrations/004_create_events.sql`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | SERIAL PK | |
+| `slug` | TEXT UNIQUE | URL identifier |
+| `title` | JSONB | `{az, en, ru}` |
+| `description` | JSONB | `{az, en, ru}` |
+| `category` | JSONB | `{az, en, ru}`, e.g. `Cultural` / `Music` |
+| `venue` | JSONB | `{az, en, ru}` |
+| `start_date` | DATE | calendar date, served as `YYYY-MM-DD` |
+| `end_date` | DATE | calendar date, served as `YYYY-MM-DD` |
+| `time` | TEXT | plain `"HH:MM"` string, not localized |
+| `image` | TEXT | plain string, not localized |
+| `ticket_url` | TEXT | plain string, not localized |
 | `source` | TEXT | provenance tag, e.g. `figma` / `draft` |
 | `is_published` | BOOLEAN | default `TRUE` |
 | `sort_order` | INTEGER | default `0` |

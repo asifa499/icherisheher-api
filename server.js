@@ -128,6 +128,44 @@ function fullRoute(row) {
   };
 }
 
+function localizeEvent(row, lang) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: pickLang(row.title, lang),
+    description: pickLang(row.description, lang),
+    category: pickLang(row.category, lang),
+    venue: pickLang(row.venue, lang),
+    start_date: row.start_date,
+    end_date: row.end_date,
+    time: row.time,
+    image: row.image,
+    ticket_url: row.ticket_url,
+    source: row.source,
+    sort_order: row.sort_order,
+  };
+}
+
+function fullEvent(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    venue: row.venue,
+    start_date: row.start_date,
+    end_date: row.end_date,
+    time: row.time,
+    image: row.image,
+    ticket_url: row.ticket_url,
+    source: row.source,
+    sort_order: row.sort_order,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 // --- Routes ---
 app.get('/', (req, res) => {
   res.json({
@@ -139,6 +177,8 @@ app.get('/', (req, res) => {
       'GET /api/museums/:slug',
       'GET /api/routes',
       'GET /api/routes/:slug',
+      'GET /api/events',
+      'GET /api/events/:slug',
     ],
   });
 });
@@ -279,6 +319,75 @@ app.get('/api/routes/:slug', async (req, res) => {
     res.json(lang ? localizeRoute(rows[0], lang) : fullRoute(rows[0]));
   } catch (err) {
     console.error(`GET /api/routes/${slug} failed:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/events?lang=az|en|ru
+// Published only, ordered by start_date (soonest first). Same contract as
+// /api/museums and /api/routes: with ?lang= the trilingual JSONB fields are
+// flattened to that language (fallback: az); without ?lang= the full
+// trilingual objects are returned.
+app.get('/api/events', async (req, res) => {
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, description, category, venue,
+              TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+              TO_CHAR(end_date,   'YYYY-MM-DD') AS end_date,
+              time, image, ticket_url, source, sort_order,
+              created_at, updated_at
+         FROM events
+        WHERE is_published = TRUE
+        ORDER BY start_date ASC NULLS LAST, sort_order ASC, id ASC`
+    );
+
+    const data = lang ? rows.map((r) => localizeEvent(r, lang)) : rows.map(fullEvent);
+    res.json({ count: data.length, lang: lang || null, data });
+  } catch (err) {
+    console.error('GET /api/events failed:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/events/:slug?lang=az|en|ru
+app.get('/api/events/:slug', async (req, res) => {
+  const { slug } = req.params;
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, description, category, venue,
+              TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
+              TO_CHAR(end_date,   'YYYY-MM-DD') AS end_date,
+              time, image, ticket_url, source, sort_order,
+              created_at, updated_at
+         FROM events
+        WHERE slug = $1 AND is_published = TRUE
+        LIMIT 1`,
+      [slug]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+
+    res.json(lang ? localizeEvent(rows[0], lang) : fullEvent(rows[0]));
+  } catch (err) {
+    console.error(`GET /api/events/${slug} failed:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

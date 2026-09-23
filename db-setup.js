@@ -6,6 +6,7 @@ const path = require('path');
 const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 const MUSEUMS_SEED_FILE = path.join(__dirname, 'data', 'museums.json');
 const ROUTES_SEED_FILE = path.join(__dirname, 'data', 'routes.json');
+const EVENTS_SEED_FILE = path.join(__dirname, 'data', 'events.json');
 
 function validateMuseum(item, i) {
   if (!item.slug || typeof item.slug !== 'string') {
@@ -25,6 +26,23 @@ function validateRoute(item, i) {
   }
   if (item.stops !== undefined && !Array.isArray(item.stops)) {
     throw new Error(`Item ${i} (${item.slug}): "stops" must be an array`);
+  }
+}
+
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+function validateEvent(item, i) {
+  if (!item.slug || typeof item.slug !== 'string') {
+    throw new Error(`Item ${i}: missing or invalid "slug"`);
+  }
+  if (!item.title || typeof item.title !== 'object') {
+    throw new Error(`Item ${i} (${item.slug}): "title" must be a trilingual object {az, en, ru}`);
+  }
+  for (const key of ['start_date', 'end_date']) {
+    const value = item[key];
+    if (value !== undefined && value !== null && !DATE_RE.test(value)) {
+      throw new Error(`Item ${i} (${item.slug}): "${key}" must be a YYYY-MM-DD string or null`);
+    }
   }
 }
 
@@ -175,10 +193,79 @@ async function seedRoutes(client) {
   console.log(`Seed complete: ${routes.length} routes upserted.`);
 }
 
+// Upserts data/events.json into the events table via `client`.
+// Same idempotent shape as seedMuseums/seedRoutes: upsert by slug, never delete.
+async function seedEvents(client) {
+  const raw = fs.readFileSync(EVENTS_SEED_FILE, 'utf8');
+  const events = JSON.parse(raw);
+
+  if (!Array.isArray(events)) {
+    throw new Error('data/events.json must be a JSON array of event objects');
+  }
+
+  for (let i = 0; i < events.length; i++) {
+    const e = events[i];
+    validateEvent(e, i);
+
+    await client.query(
+      `INSERT INTO events (
+         slug, title, description, category, venue,
+         start_date, end_date, time, image, ticket_url, source,
+         is_published, sort_order
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+       ON CONFLICT (slug) DO UPDATE SET
+         title        = EXCLUDED.title,
+         description  = EXCLUDED.description,
+         category     = EXCLUDED.category,
+         venue        = EXCLUDED.venue,
+         start_date   = EXCLUDED.start_date,
+         end_date     = EXCLUDED.end_date,
+         time         = EXCLUDED.time,
+         image        = EXCLUDED.image,
+         ticket_url   = EXCLUDED.ticket_url,
+         source       = EXCLUDED.source,
+         is_published = EXCLUDED.is_published,
+         sort_order   = EXCLUDED.sort_order`,
+      [
+        e.slug,
+        JSON.stringify(e.title),
+        JSON.stringify(e.description || {}),
+        JSON.stringify(e.category || {}),
+        JSON.stringify(e.venue || {}),
+        e.start_date ?? null,
+        e.end_date ?? null,
+        e.time ?? null,
+        e.image ?? null,
+        e.ticket_url ?? null,
+        e.source ?? null,
+        e.is_published !== false,
+        Number.isInteger(e.sort_order) ? e.sort_order : i + 1,
+      ]
+    );
+    console.log(`\u2713 ${e.slug}`);
+  }
+
+  // Same rule as museums/routes: unpublish (never delete) rows whose slug is
+  // no longer in the bundled JSON, so stale rows can't reach the API.
+  const slugs = events.map((e) => e.slug);
+  const { rowCount } = await client.query(
+    `UPDATE events SET is_published = FALSE
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+    [slugs]
+  );
+  if (rowCount > 0) {
+    console.log(`Unpublished ${rowCount} stale event(s) no longer in data/events.json.`);
+  }
+
+  console.log(`Seed complete: ${events.length} events upserted.`);
+}
+
 // Syncs every bundled seed file into its table.
 async function runSeed(client) {
   await seedMuseums(client);
   await seedRoutes(client);
+  await seedEvents(client);
 }
 
 // Idempotent, safe-on-every-boot setup. Migrations always run — every
@@ -186,7 +273,8 @@ async function runSeed(client) {
 // re-running them against an already-migrated DB is a no-op — which is what
 // lets a new migration (e.g. adding a column) reach a database that was
 // already set up by an earlier deploy. The seed step always runs too,
-// re-syncing data/museums.json and data/routes.json into their tables by
+// re-syncing data/museums.json, data/routes.json and data/events.json into
+// their tables by
 // upserting on slug — existing rows get their changed fields updated, new
 // slugs get inserted, and nothing is ever duplicated. Everything runs in a
 // single transaction.
@@ -220,6 +308,7 @@ module.exports = {
   runMigrations,
   seedMuseums,
   seedRoutes,
+  seedEvents,
   runSeed,
   ensureDatabaseSetup,
 };
