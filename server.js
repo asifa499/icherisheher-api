@@ -10,7 +10,16 @@ const PORT = process.env.PORT || 3000;
 const SUPPORTED_LANGS = ['az', 'en', 'ru'];
 const DEFAULT_LANG = 'az';
 
+// Express auto-generates an ETag for every JSON response and answers matching
+// If-None-Match requests with a bare 304 (no body). Browsers were treating
+// those 304s as opaque/blocked, so the frontend fell back to local JSON.
+// Disabling etag generation means every request gets a full 200 response.
+app.set('etag', false);
+
 // --- CORS allowlist: GitHub Pages frontend + local development ---
+// This MUST be the first app.use() — it has to run on every request,
+// including error responses and 404s, so the Access-Control-Allow-Origin
+// header is always present.
 const ALLOWED_ORIGINS = ['https://asifa499.github.io'];
 const LOCALHOST_RE = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
 
@@ -28,6 +37,13 @@ app.use(
 );
 
 app.use(express.json());
+
+// Never let browsers/proxies cache API responses or revalidate via
+// If-None-Match — museum data should always be fetched fresh.
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store');
+  next();
+});
 
 // --- Helpers ---
 function pickLang(jsonb, lang) {
