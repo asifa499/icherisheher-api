@@ -1,7 +1,7 @@
 # icherisheher-api
 
 İçərişəhər Digital Experience Ecosystem — public REST API.
-Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route, event and news content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
+Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route, event, news and place content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
 
 ## Stack
 
@@ -22,13 +22,17 @@ Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
 ```bash
 npm install
-npm run migrate   # creates the museums + routes + events + news tables (migrations/*.sql in order)
-npm run seed      # imports data/museums.json + data/routes.json + data/events.json + data/news.json (upsert by slug)
+npm run migrate   # creates the museums + routes + events + news + places tables (migrations/*.sql in order)
+npm run seed      # imports data/museums.json + data/routes.json + data/events.json + data/news.json + data/places.json (upsert by slug)
 npm start         # starts the server
 ```
 
-> **Note:** `data/museums.json`, `data/routes.json`, `data/events.json` and
-> `data/news.json` are synced from the `icherisheher-home` frontend repo. The boot-time auto-setup re-runs the seed
+> **Note:** `data/museums.json`, `data/routes.json`, `data/events.json`,
+> `data/news.json` and `data/places.json` are synced from the `icherisheher-home` frontend repo.
+> `data/places.json` has no upstream counterpart yet — the frontend's
+> "See What's Nearby" section is still unbuilt — so it currently holds
+> placeholder entries written against this schema; replace it wholesale once
+> the frontend file exists. The boot-time auto-setup re-runs the seed
 > on every start — it upserts by `slug`, so refreshing these files and
 > redeploying is always safe (existing rows get updated, new slugs get
 > inserted, nothing is duplicated).
@@ -195,6 +199,52 @@ it only orders items that share a date within the same kind.
 ### `GET /api/news/:slug?lang=az|en|ru`
 Single published news item by slug. `404` if missing or unpublished.
 
+### `GET /api/places?lang=az|en|ru&category=<key>`
+Published places only (`is_published = TRUE`), ordered by `sort_order`. These
+are the map pins behind the frontend's "See What's Nearby" section. Same
+contract as the other collections — with `?lang=` the trilingual fields are
+flattened to that language (fallback: `az`); without `?lang=` the full
+trilingual objects are returned.
+
+The optional `?category=` filter narrows the list to one map chip — the seed
+data uses `landmark`, `museum`, `cafe`, `shop` and `hotel`. Unlike `/api/news`'s
+`?type=`, the category is free-form (no CHECK constraint), so an unknown value
+returns an empty list rather than a `400`.
+
+```json
+{
+  "count": 1,
+  "lang": "en",
+  "category": "landmark",
+  "data": [
+    {
+      "id": 1,
+      "slug": "maiden-tower",
+      "category": "landmark",
+      "name": "Maiden Tower",
+      "description": "The symbol of the Old City — a UNESCO-listed eight-storey tower.",
+      "address": "1 Maiden Tower Street, Icherisheher",
+      "image": "assets/img/place-maiden-tower.jpg",
+      "open_hours": "10:00 – 18:00",
+      "status": "open",
+      "lat": 40.366389,
+      "lng": 49.837222,
+      "source": "placeholder",
+      "sort_order": 1
+    }
+  ]
+}
+```
+
+`category`, `image`, `open_hours`, `status`, `lat`, `lng` and `source` are
+plain values (not trilingual) — only `name`, `description` and `address` are
+localized per `{az, en, ru}`. `lat`/`lng` are stored as `NUMERIC(9, 6)` but
+cast to `float8` on the way out, so they arrive as JSON numbers a map can use
+directly (node-pg would otherwise serialize `NUMERIC` as a string).
+
+### `GET /api/places/:slug?lang=az|en|ru`
+Single published place by slug. `404` if missing or unpublished.
+
 ## CORS
 
 Allowlist only:
@@ -276,6 +326,27 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `image` | TEXT | plain string, not localized |
 | `image_position` | TEXT | CSS `object-position`, e.g. `26% center` |
 | `published_date` | DATE | calendar date, served as `YYYY-MM-DD` |
+| `source` | TEXT | provenance tag, e.g. `figma` / `placeholder` |
+| `is_published` | BOOLEAN | default `TRUE` |
+| `sort_order` | INTEGER | default `0` |
+| `created_at` | TIMESTAMPTZ | default `NOW()` |
+| `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+`migrations/006_create_places.sql`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | SERIAL PK | |
+| `slug` | TEXT UNIQUE | URL identifier |
+| `category` | TEXT | free-form chip key, e.g. `landmark` / `museum` / `cafe` / `shop` / `hotel`; default `other` |
+| `name` | JSONB | `{az, en, ru}` |
+| `description` | JSONB | `{az, en, ru}` |
+| `address` | JSONB | `{az, en, ru}` |
+| `image` | TEXT | plain string, not localized |
+| `open_hours` | TEXT | plain string, e.g. `10:00 – 18:00` |
+| `status` | TEXT | `open` / `closed` / `temporarily_closed` |
+| `lat` | NUMERIC(9,6) | latitude, served as a JSON number (cast to `float8`) |
+| `lng` | NUMERIC(9,6) | longitude, served as a JSON number (cast to `float8`) |
 | `source` | TEXT | provenance tag, e.g. `figma` / `placeholder` |
 | `is_published` | BOOLEAN | default `TRUE` |
 | `sort_order` | INTEGER | default `0` |

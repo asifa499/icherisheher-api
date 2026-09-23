@@ -199,6 +199,44 @@ function fullNews(row) {
   };
 }
 
+function localizePlace(row, lang) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    category: row.category,
+    name: pickLang(row.name, lang),
+    description: pickLang(row.description, lang),
+    address: pickLang(row.address, lang),
+    image: row.image,
+    open_hours: row.open_hours,
+    status: row.status,
+    lat: row.lat,
+    lng: row.lng,
+    source: row.source,
+    sort_order: row.sort_order,
+  };
+}
+
+function fullPlace(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    category: row.category,
+    name: row.name,
+    description: row.description,
+    address: row.address,
+    image: row.image,
+    open_hours: row.open_hours,
+    status: row.status,
+    lat: row.lat,
+    lng: row.lng,
+    source: row.source,
+    sort_order: row.sort_order,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 // --- Routes ---
 app.get('/', (req, res) => {
   res.json({
@@ -214,6 +252,8 @@ app.get('/', (req, res) => {
       'GET /api/events/:slug',
       'GET /api/news',
       'GET /api/news/:slug',
+      'GET /api/places',
+      'GET /api/places/:slug',
     ],
   });
 });
@@ -497,6 +537,80 @@ app.get('/api/news/:slug', async (req, res) => {
     res.json(lang ? localizeNews(rows[0], lang) : fullNews(rows[0]));
   } catch (err) {
     console.error(`GET /api/news/${slug} failed:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/places?lang=az|en|ru&category=<key>
+// Published only, ordered by sort_order. Same contract as the other
+// collections — with ?lang= the trilingual JSONB fields are flattened to that
+// language (fallback: az); without ?lang= the full trilingual objects are
+// returned. The optional ?category= filter narrows the list to one map chip
+// (landmark, museum, cafe, shop, hotel, ...); it is free-form, so an unknown
+// category simply returns an empty list rather than a 400.
+//
+// lat/lng are stored as NUMERIC — node-pg would hand those back as strings,
+// so both are cast to float8 here and reach the frontend as JS numbers.
+app.get('/api/places', async (req, res) => {
+  const { lang, category } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, category, name, description, address,
+              image, open_hours, status,
+              lat::float8 AS lat, lng::float8 AS lng,
+              source, sort_order, created_at, updated_at
+         FROM places
+        WHERE is_published = TRUE
+          AND ($1::text IS NULL OR category = $1)
+        ORDER BY sort_order ASC, id ASC`,
+      [category || null]
+    );
+
+    const data = lang ? rows.map((r) => localizePlace(r, lang)) : rows.map(fullPlace);
+    res.json({ count: data.length, lang: lang || null, category: category || null, data });
+  } catch (err) {
+    console.error('GET /api/places failed:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/places/:slug?lang=az|en|ru
+app.get('/api/places/:slug', async (req, res) => {
+  const { slug } = req.params;
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, category, name, description, address,
+              image, open_hours, status,
+              lat::float8 AS lat, lng::float8 AS lng,
+              source, sort_order, created_at, updated_at
+         FROM places
+        WHERE slug = $1 AND is_published = TRUE
+        LIMIT 1`,
+      [slug]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Place not found' });
+    }
+
+    res.json(lang ? localizePlace(rows[0], lang) : fullPlace(rows[0]));
+  } catch (err) {
+    console.error(`GET /api/places/${slug} failed:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

@@ -1,0 +1,272 @@
+[
+  {
+    "id": 1,
+    "slug": "maiden-tower",
+    "category": "landmark",
+    "source": "placeholder",
+    "name": {
+      "az": "Qız Qalası",
+      "en": "Maiden Tower",
+      "ru": "Девичья башня"
+    },
+    "description": {
+      "az": "İçərişəhərin simvolu — UNESCO siyahısındakı səkkiz mərtəbəli qüllə və şəhərin ən yaxşı panoram meydançası.",
+      "en": "The symbol of the Old City — a UNESCO-listed eight-storey tower with the best panoramic terrace in Baku.",
+      "ru": "Символ Ичеришехер — восьмиэтажная башня из списка ЮНЕСКО с лучшей панорамной площадкой города."
+    },
+    "address": {
+      "az": "Qız Qalası küçəsi 1, İçərişəhər",
+      "en": "1 Maiden Tower Street, Icherisheher",
+      "ru": "Улица Девичьей башни 1, Ичеришехер"
+    },
+    "image": "assets/img/place-maiden-tower.jpg",
+    "open_hours": "10:00 – 18:00",
+    "status": "open",
+    "lat": 40.366389,
+    "lng": 49.837222,
+    "sort_order": 1
+  },
+  {
+    "id": 2,
+    "slug": "shirvanshahs-palace",
+    "category": "landmark",
+    "source": "placeholder",
+    "name": {
+      "az": "Şirvanşahlar Sarayı",
+      "en": "Palace of the Shirvanshahs",
+      "ru": "Дворец Ширваншахов"
+    },
+    "description": {
+      "az": "XV əsrin saray kompleksi: divanxana, türbə, hamam və Şirvanşahlar məscidi bir həyətdə.",
+      "en": "A 15th-century palace complex — divankhana, mausoleum, bathhouse and mosque around one courtyard.",
+      "ru": "Дворцовый комплекс XV века: диванхана, усыпальница, баня и мечеть вокруг одного двора."
+    },
+    "address": {
+      "az": "Qüllə küçəsi 76, İçərişəhər",
+      "en": "76 Gulle Street, Icherisheher",
+      "ru": "Улица Гюлле 76, Ичеришехер"
+    },
+    "image": "assets/img/place-shirvanshahs-palace.jpg",
+    "open_hours": "10:00 – 18:00",
+    "status": "open",
+    "lat": 40.366111,
+    "lng": 49.833056,
+    "sort_order": 2
+  },
+  {
+    "id": 3,
+    "slug": "muhammad-mosque",
+    "category": "landmark",
+    "source": "placeholder",
+    "name": {
+      "az": "Məhəmməd məscidi (Sınıqqala)",
+      "en": "Muhammad Mosque (Sinigqala)",
+      "ru": "Мечеть Мухаммеда (Сыныг-кала)"
+    },
+    "description": {
+      "az": "1078-ci ilə aid, İçərişəhərin ən qədim tarixli məscidi — minarəsi şəhərin ilk memarlıq kitabəsini daşıyır.",
+      "en": "Dated 1078, the oldest dated mosque in the Old City; its minaret carries the city's earliest architectural inscription.",
+      "ru": "Датируется 1078 годом — старейшая датированная мечеть Ичеришехер с древнейшей архитектурной надписью города."
+    },
+    "address": {
+      "az": "Minarə küçəsi, İçərişəhər",
+      "en": "Minara Street, Icherisheher",
+      "ru": "Улица Минара, Ичеришехер"
+    },
+    "image": "assets/img/place-muhammad-mosque.jpg",
+    "open_hours": "09:00 – 19:00",
+    "status": "open",
+    "lat": 40.366944,
+    "lng": 49.835278,
+    "sort_order": 3
+  },
+  {
+    "id": 4,
+    "slug": "multani-caravanserai",
+    "category": "landmark",
+    "source": "placeholder",
+    "name": {
+      "az": "Multani karvansarayı",
+      "en": "Multani Caravanserai",
+      "ru": "Мултанинский караван-сарай"
+    },
+    "description": {
+      "az": "XIV əsrin hind karvansarayı — İpək Yolu tacirlərinin dayanacağı, bu gün açıq həyətli restoran.",
+      "en": "A 14th-century Indian caravanserai — a Silk Road traders' stop, today a restaurant around an open courtyard.",
+      "ru": "Индийский караван-сарай XIV века — стоянка купцов Шёлкового пути, сегодня ресторан с открытым двором."
+    },
+    "address": {
+      "az": "Böyük Qala küçəsi, İçərişəhər",
+      "en": "Boyuk Gala Street, Icherisheher",
+      "ru": "Улица Бёюк Гала, Ичеришехер"
+    },
+    "image": "assets/img/place-multani-caravanserai.jpg",
+    "open_hours": "11:00 – 23:00",
+    "status": "open",
+    "lat": 40.366389,
+    "lng": 49.836389,
+    "sort_order": 4
+  },
+  {
+    "id": 5,
+    "slug": "double-gates",
+    "category": "landmark",
+    "source": "placeholder",
+    "name": {
+      "az": "Qoşa Qala Qapısı",
+      "en": "Double Gates",
+      "ru": "Парные крепостные ворота"
+    },
+    "description": {
+      "az": "İçərişəhərin əsas girişi — qala divarındakı ikiqat tağlı darvaza, piyada marşrutların başlanğıc nöqtəsi.",
+      "en": "The main entrance to the Old City — a twin-arched gateway in the fortress wall where the walking routes start.",
+      "ru": "Главный вход в Ичеришехер — двойные арочные ворота в крепостной стене, начало пешеходных маршрутов."
+    },
+    "address": {
+      "az": "İstiqlaliyyət küçəsi, İçərişəhər",
+      "en": "Istiglaliyyat Street, Icherisheher",
+      "ru": "Улица Истиглалият, Ичеришехер"
+    },
+    "image": "assets/img/place-double-gates.jpg",
+    "open_hours": "24/7",
+    "status": "open",
+    "lat": 40.367222,
+    "lng": 49.8325,
+    "sort_order": 5
+  },
+  {
+    "id": 6,
+    "slug": "miniature-book-museum",
+    "category": "museum",
+    "source": "placeholder",
+    "name": {
+      "az": "Miniatür Kitab Muzeyi",
+      "en": "Museum of Miniature Books",
+      "ru": "Музей миниатюрной книги"
+    },
+    "description": {
+      "az": "Dünyada yeganə miniatür kitab muzeyi — 60-dan çox ölkədən mindən artıq kiçik nəşr.",
+      "en": "The world's only museum of miniature books — over a thousand tiny editions from more than 60 countries.",
+      "ru": "Единственный в мире музей миниатюрной книги — более тысячи изданий из 60 с лишним стран."
+    },
+    "address": {
+      "az": "Qüllə küçəsi 67, İçərişəhər",
+      "en": "67 Gulle Street, Icherisheher",
+      "ru": "Улица Гюлле 67, Ичеришехер"
+    },
+    "image": "assets/img/place-miniature-book-museum.jpg",
+    "open_hours": "11:00 – 17:00",
+    "status": "open",
+    "lat": 40.3668,
+    "lng": 49.833900,
+    "sort_order": 6
+  },
+  {
+    "id": 7,
+    "slug": "old-city-tea-house",
+    "category": "cafe",
+    "source": "placeholder",
+    "name": {
+      "az": "Kiçik Qala çayxanası",
+      "en": "Kichik Gala tea house",
+      "ru": "Чайхана на Кичик Гала"
+    },
+    "description": {
+      "az": "Qala divarının dibində armudu stəkanda çay, mürəbbə və şəkərbura — piyada marşrutun ortasında dayanacaq.",
+      "en": "Tea in armudu glasses with jam and pastries at the foot of the fortress wall — a mid-route stop.",
+      "ru": "Чай в стаканчиках армуду с вареньем и выпечкой у крепостной стены — остановка на середине маршрута."
+    },
+    "address": {
+      "az": "Kiçik Qala küçəsi, İçərişəhər",
+      "en": "Kichik Gala Street, Icherisheher",
+      "ru": "Улица Кичик Гала, Ичеришехер"
+    },
+    "image": "assets/img/place-tea-house.jpg",
+    "open_hours": "08:00 – 22:00",
+    "status": "open",
+    "lat": 40.365900,
+    "lng": 49.834700,
+    "sort_order": 7
+  },
+  {
+    "id": 8,
+    "slug": "carpet-and-souvenir-workshop",
+    "category": "shop",
+    "source": "placeholder",
+    "name": {
+      "az": "Xalça və suvenir emalatxanası",
+      "en": "Carpet and souvenir workshop",
+      "ru": "Ковровая и сувенирная мастерская"
+    },
+    "description": {
+      "az": "Əl toxuması xalçalar, misgərlik və keramika — ustaların iş başında olduğu açıq emalatxana.",
+      "en": "Hand-woven carpets, coppersmithing and ceramics in an open workshop where the masters work in view.",
+      "ru": "Ручные ковры, медная чеканка и керамика в открытой мастерской, где мастера работают на виду."
+    },
+    "address": {
+      "az": "Əsəf Zeynallı küçəsi, İçərişəhər",
+      "en": "Asaf Zeynalli Street, Icherisheher",
+      "ru": "Улица Асафа Зейналлы, Ичеришехер"
+    },
+    "image": "assets/img/place-carpet-workshop.jpg",
+    "open_hours": "10:00 – 20:00",
+    "status": "open",
+    "lat": 40.365500,
+    "lng": 49.836100,
+    "sort_order": 8
+  },
+  {
+    "id": 9,
+    "slug": "boutique-hotel-in-the-walls",
+    "category": "hotel",
+    "source": "placeholder",
+    "name": {
+      "az": "Qala divarları içində butik otel",
+      "en": "Boutique hotel inside the walls",
+      "ru": "Бутик-отель внутри крепостных стен"
+    },
+    "description": {
+      "az": "Bərpa olunmuş tarixi evdə kiçik otel — Qız Qalasına beş dəqiqəlik piyada məsafədə.",
+      "en": "A small hotel in a restored historic house, a five-minute walk from the Maiden Tower.",
+      "ru": "Небольшой отель в отреставрированном историческом доме в пяти минутах ходьбы от Девичьей башни."
+    },
+    "address": {
+      "az": "Böyük Qala küçəsi, İçərişəhər",
+      "en": "Boyuk Gala Street, Icherisheher",
+      "ru": "Улица Бёюк Гала, Ичеришехер"
+    },
+    "image": "assets/img/place-boutique-hotel.jpg",
+    "open_hours": "24/7",
+    "status": "open",
+    "lat": 40.367000,
+    "lng": 49.835900,
+    "sort_order": 9
+  },
+  {
+    "id": 10,
+    "slug": "hajinski-house-viewpoint",
+    "category": "landmark",
+    "source": "placeholder",
+    "name": {
+      "az": "Qala divarı seyr meydançası",
+      "en": "Fortress wall viewpoint",
+      "ru": "Смотровая площадка на крепостной стене"
+    },
+    "description": {
+      "az": "Divarın üstündən Xəzərə və Alov Qüllələrinə baxan pulsuz seyr nöqtəsi — gün batımı üçün ən yaxşı yer.",
+      "en": "A free viewpoint on top of the wall looking over the Caspian and the Flame Towers — best at sunset.",
+      "ru": "Бесплатная смотровая на крепостной стене с видом на Каспий и Пламенные башни — лучше всего на закате."
+    },
+    "address": {
+      "az": "Neapol döngəsi, İçərişəhər",
+      "en": "Neapol Lane, Icherisheher",
+      "ru": "Неапольский переулок, Ичеришехер"
+    },
+    "image": "assets/img/place-wall-viewpoint.jpg",
+    "open_hours": "24/7",
+    "status": "open",
+    "lat": 40.364900,
+    "lng": 49.836800,
+    "sort_order": 10
+  }
+]
