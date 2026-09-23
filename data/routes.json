@@ -1,0 +1,262 @@
+[
+  {
+    "id": 1,
+    "slug": "first-time-1-day",
+    "source": "figma",
+    "title": {
+      "az": "İlk dəfə · 1 gün",
+      "en": "First time · 1 day",
+      "ru": "Впервые · 1 день"
+    },
+    "duration": {
+      "az": "4–5 saat",
+      "en": "4–5 hours",
+      "ru": "4–5 часов"
+    },
+    "distance": {
+      "az": "2,1 km dövrə",
+      "en": "2.1 km loop",
+      "ru": "Кольцо 2,1 км"
+    },
+    "tags": ["first-time", "classic", "walking"],
+    "image": "assets/img/route-classic-walk.jpg",
+    "pass_url": "#",
+    "sort_order": 1,
+    "stops": [
+      {
+        "name": {
+          "az": "Qoşa Qala Qapıları",
+          "en": "Qoşa Qala Gates",
+          "ru": "Ворота Гоша Гала"
+        },
+        "description": {
+          "az": "Qoşa qapılardan başla — şəhərə tarixi giriş",
+          "en": "Start at the twin gates — the historic way in",
+          "ru": "Начните у двойных ворот — исторический вход в город"
+        },
+        "image": null,
+        "sort_order": 1
+      },
+      {
+        "name": {
+          "az": "Şirvanşahlar Sarayı",
+          "en": "Shirvanshahs' Palace",
+          "ru": "Дворец Ширваншахов"
+        },
+        "description": {
+          "az": "Saray kompleksi · bileti əvvəlcədən al, növbəyə dayanma",
+          "en": "The royal complex · buy skip-the-line ahead",
+          "ru": "Дворцовый комплекс · купите билет заранее, без очереди"
+        },
+        "image": null,
+        "sort_order": 2
+      },
+      {
+        "name": {
+          "az": "Cümə məscidi və karvansaralar",
+          "en": "Juma Mosque & caravanserais",
+          "ru": "Джума-мечеть и караван-сараи"
+        },
+        "description": {
+          "az": "İpək Yolu həyətləri, indi çayxanalar",
+          "en": "Silk Road courtyards, now tea houses",
+          "ru": "Дворы Шёлкового пути, сегодня — чайханы"
+        },
+        "image": null,
+        "sort_order": 3
+      },
+      {
+        "name": {
+          "az": "Qız Qalası",
+          "en": "Maiden Tower",
+          "ru": "Девичья башня"
+        },
+        "description": {
+          "az": "Yuxarı qalx — Xəzərə açılan dam mənzərəsi",
+          "en": "Climb for the rooftop view over the Caspian",
+          "ru": "Поднимитесь наверх — вид на Каспий с крыши"
+        },
+        "image": null,
+        "sort_order": 4
+      }
+    ]
+  },
+  {
+    "id": 2,
+    "slug": "weekend-48h",
+    "source": "draft",
+    "title": {
+      "az": "Həftəsonu · 48 saat",
+      "en": "Weekend · 48h",
+      "ru": "Выходные · 48 ч"
+    },
+    "duration": {
+      "az": "2 gün",
+      "en": "2 days",
+      "ru": "2 дня"
+    },
+    "distance": {
+      "az": "4,6 km dövrə",
+      "en": "4.6 km loop",
+      "ru": "Кольцо 4,6 км"
+    },
+    "tags": ["weekend", "museums", "walking"],
+    "image": "assets/img/route-classic-walk.jpg",
+    "pass_url": "#",
+    "sort_order": 2,
+    "stops": [
+      {
+        "name": {
+          "az": "Qala divarları və bürclər",
+          "en": "City walls & watchtowers",
+          "ru": "Крепостные стены и башни"
+        },
+        "description": {
+          "az": "Səhər gəzintisi — divar boyu tam dövrə",
+          "en": "Morning walk — the full loop along the walls",
+          "ru": "Утренняя прогулка — полный круг вдоль стен"
+        },
+        "image": null,
+        "sort_order": 1
+      },
+      {
+        "name": {
+          "az": "Şirvanşahlar Sarayı",
+          "en": "Shirvanshahs' Palace",
+          "ru": "Дворец Ширваншахов"
+        },
+        "description": {
+          "az": "Divanxana, türbə və saray hamamı",
+          "en": "Divankhana, the mausoleum and the palace bath",
+          "ru": "Диванхана, усыпальница и дворцовая баня"
+        },
+        "image": null,
+        "sort_order": 2
+      },
+      {
+        "name": {
+          "az": "Miniatür Kitab Muzeyi",
+          "en": "Museum of Miniature Books",
+          "ru": "Музей миниатюрной книги"
+        },
+        "description": {
+          "az": "Dünyada yeganə — girişi pulsuzdur",
+          "en": "The only one of its kind — free entry",
+          "ru": "Единственный в мире — вход свободный"
+        },
+        "image": null,
+        "sort_order": 3
+      },
+      {
+        "name": {
+          "az": "Yeraltı Hamam",
+          "en": "Underground Hammam",
+          "ru": "Подземный хаммам"
+        },
+        "description": {
+          "az": "Orta əsr hamamı, küçə səviyyəsinin altında",
+          "en": "A medieval bathhouse below street level",
+          "ru": "Средневековая баня ниже уровня улицы"
+        },
+        "image": null,
+        "sort_order": 4
+      },
+      {
+        "name": {
+          "az": "Qız Qalası",
+          "en": "Maiden Tower",
+          "ru": "Девичья башня"
+        },
+        "description": {
+          "az": "Günbatımı üçün ikinci günə saxla",
+          "en": "Save it for sunset on day two",
+          "ru": "Оставьте на закат второго дня"
+        },
+        "image": null,
+        "sort_order": 5
+      }
+    ]
+  },
+  {
+    "id": 3,
+    "slug": "food-and-craft",
+    "source": "draft",
+    "title": {
+      "az": "Yemək və sənətkarlıq",
+      "en": "Food & craft",
+      "ru": "Еда и ремёсла"
+    },
+    "duration": {
+      "az": "3 saat",
+      "en": "3 hours",
+      "ru": "3 часа"
+    },
+    "distance": {
+      "az": "1,4 km dövrə",
+      "en": "1.4 km loop",
+      "ru": "Кольцо 1,4 км"
+    },
+    "tags": ["food", "craft", "shopping"],
+    "image": "assets/img/route-classic-walk.jpg",
+    "pass_url": "#",
+    "sort_order": 3,
+    "stops": [
+      {
+        "name": {
+          "az": "Sıratağlı (Bazar meydanı)",
+          "en": "Sirataghli (Bazaar Square)",
+          "ru": "Сыраталы (Базарная площадь)"
+        },
+        "description": {
+          "az": "Şəhərin köhnə ticarət meydanından başla",
+          "en": "Start where the old city traded",
+          "ru": "Начните там, где город торговал веками"
+        },
+        "image": null,
+        "sort_order": 1
+      },
+      {
+        "name": {
+          "az": "Karvansara restoranları",
+          "en": "Caravanserai restaurants",
+          "ru": "Рестораны в караван-сараях"
+        },
+        "description": {
+          "az": "Daş həyətdə nahar — plov və sac",
+          "en": "Lunch in a stone courtyard — plov and sac",
+          "ru": "Обед в каменном дворе — плов и садж"
+        },
+        "image": null,
+        "sort_order": 2
+      },
+      {
+        "name": {
+          "az": "Xalça və misgər emalatxanaları",
+          "en": "Carpet & coppersmith workshops",
+          "ru": "Ковровые и медные мастерские"
+        },
+        "description": {
+          "az": "Ustaları iş başında gör, birbaşa al",
+          "en": "Watch the makers at work, buy direct",
+          "ru": "Посмотрите на мастеров и купите напрямую"
+        },
+        "image": null,
+        "sort_order": 3
+      },
+      {
+        "name": {
+          "az": "Kiçik Qala çayxanaları",
+          "en": "Kichik Gala tea houses",
+          "ru": "Чайханы на Кичик Гала"
+        },
+        "description": {
+          "az": "Armudu stəkanda çay və mürəbbə ilə bitir",
+          "en": "Finish with tea and jam in an armudu glass",
+          "ru": "Завершите чаем с вареньем в стакане армуду"
+        },
+        "image": null,
+        "sort_order": 4
+      }
+    ]
+  }
+]

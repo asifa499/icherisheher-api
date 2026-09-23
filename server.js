@@ -85,12 +85,61 @@ function fullMuseum(row) {
   };
 }
 
+function localizeStop(stop, lang) {
+  return {
+    name: pickLang(stop.name, lang),
+    description: pickLang(stop.description, lang),
+    image: stop.image ?? null,
+    sort_order: stop.sort_order,
+  };
+}
+
+function localizeRoute(row, lang) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: pickLang(row.title, lang),
+    duration: pickLang(row.duration, lang),
+    distance: pickLang(row.distance, lang),
+    tags: row.tags,
+    stops: (row.stops || []).map((s) => localizeStop(s, lang)),
+    image: row.image,
+    pass_url: row.pass_url,
+    source: row.source,
+    sort_order: row.sort_order,
+  };
+}
+
+function fullRoute(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    title: row.title,
+    duration: row.duration,
+    distance: row.distance,
+    tags: row.tags,
+    stops: row.stops,
+    image: row.image,
+    pass_url: row.pass_url,
+    source: row.source,
+    sort_order: row.sort_order,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 // --- Routes ---
 app.get('/', (req, res) => {
   res.json({
     name: 'icherisheher-api',
     status: 'ok',
-    endpoints: ['GET /api/health', 'GET /api/museums', 'GET /api/museums/:slug'],
+    endpoints: [
+      'GET /api/health',
+      'GET /api/museums',
+      'GET /api/museums/:slug',
+      'GET /api/routes',
+      'GET /api/routes/:slug',
+    ],
   });
 });
 
@@ -165,6 +214,71 @@ app.get('/api/museums/:slug', async (req, res) => {
     res.json(lang ? localizeMuseum(rows[0], lang) : fullMuseum(rows[0]));
   } catch (err) {
     console.error(`GET /api/museums/${slug} failed:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/routes?lang=az|en|ru
+// Published only, ordered by sort_order. Same contract as /api/museums:
+// with ?lang= the trilingual JSONB fields (including those inside each stop)
+// are flattened to that language (fallback: az); without ?lang= the full
+// trilingual objects are returned.
+app.get('/api/routes', async (req, res) => {
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, duration, distance, tags, stops,
+              image, pass_url, source, sort_order,
+              created_at, updated_at
+         FROM routes
+        WHERE is_published = TRUE
+        ORDER BY sort_order ASC, id ASC`
+    );
+
+    const data = lang ? rows.map((r) => localizeRoute(r, lang)) : rows.map(fullRoute);
+    res.json({ count: data.length, lang: lang || null, data });
+  } catch (err) {
+    console.error('GET /api/routes failed:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/routes/:slug?lang=az|en|ru
+app.get('/api/routes/:slug', async (req, res) => {
+  const { slug } = req.params;
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, title, duration, distance, tags, stops,
+              image, pass_url, source, sort_order,
+              created_at, updated_at
+         FROM routes
+        WHERE slug = $1 AND is_published = TRUE
+        LIMIT 1`,
+      [slug]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Route not found' });
+    }
+
+    res.json(lang ? localizeRoute(rows[0], lang) : fullRoute(rows[0]));
+  } catch (err) {
+    console.error(`GET /api/routes/${slug} failed:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

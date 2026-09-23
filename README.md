@@ -1,7 +1,7 @@
 # icherisheher-api
 
 İçərişəhər Digital Experience Ecosystem — public REST API.
-Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
+Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum and route content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
 
 ## Stack
 
@@ -22,15 +22,16 @@ Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
 ```bash
 npm install
-npm run migrate   # creates the museums table (migrations/*.sql in order)
-npm run seed      # imports data/museums.json (upsert by slug)
+npm run migrate   # creates the museums + routes tables (migrations/*.sql in order)
+npm run seed      # imports data/museums.json + data/routes.json (upsert by slug)
 npm start         # starts the server
 ```
 
-> **Note:** `data/museums.json` is synced from the `icherisheher-home` frontend
-> repo. The boot-time auto-setup re-runs the seed on every start — it upserts
-> by `slug`, so refreshing this file and redeploying is always safe (existing
-> rows get updated, new slugs get inserted, nothing is duplicated).
+> **Note:** `data/museums.json` and `data/routes.json` are synced from the
+> `icherisheher-home` frontend repo. The boot-time auto-setup re-runs the seed
+> on every start — it upserts by `slug`, so refreshing these files and
+> redeploying is always safe (existing rows get updated, new slugs get
+> inserted, nothing is duplicated).
 
 ## Endpoints
 
@@ -72,6 +73,48 @@ localized per `{az, en, ru}`. `rating` is a number.
 ### `GET /api/museums/:slug?lang=az|en|ru`
 Single published museum by slug. `404` if missing or unpublished.
 
+### `GET /api/routes?lang=az|en|ru`
+Published ready-made routes only (`is_published = TRUE`), ordered by `sort_order`.
+Same contract as `/api/museums` — with `?lang=` the trilingual fields are
+flattened to that language (fallback: `az`), including the fields inside each
+stop; without `?lang=` the full trilingual objects are returned.
+
+```json
+{
+  "count": 3,
+  "lang": "en",
+  "data": [
+    {
+      "id": 1,
+      "slug": "first-time-1-day",
+      "title": "First time · 1 day",
+      "duration": "4–5 hours",
+      "distance": "2.1 km loop",
+      "tags": ["first-time", "classic", "walking"],
+      "stops": [
+        {
+          "name": "Qoşa Qala Gates",
+          "description": "Start at the twin gates — the historic way in",
+          "image": null,
+          "sort_order": 1
+        }
+      ],
+      "image": "assets/img/route-classic-walk.jpg",
+      "pass_url": "#",
+      "source": "figma",
+      "sort_order": 1
+    }
+  ]
+}
+```
+
+`image`, `pass_url` and `source` are plain values (not trilingual) — only
+`title`, `duration`, `distance` and each stop's `name` / `description` are
+localized per `{az, en, ru}`. `tags` is a plain string array.
+
+### `GET /api/routes/:slug?lang=az|en|ru`
+Single published route by slug. `404` if missing or unpublished.
+
 ## CORS
 
 Allowlist only:
@@ -96,6 +139,25 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `rating` | REAL | numeric, e.g. `4.9` |
 | `ticket_price` | TEXT | plain string, not localized |
 | `ticket_url` | TEXT | plain string, not localized |
+| `is_published` | BOOLEAN | default `TRUE` |
+| `sort_order` | INTEGER | default `0` |
+| `created_at` | TIMESTAMPTZ | default `NOW()` |
+| `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+`migrations/003_create_routes.sql`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | SERIAL PK | |
+| `slug` | TEXT UNIQUE | URL identifier |
+| `title` | JSONB | `{az, en, ru}` |
+| `duration` | JSONB | `{az, en, ru}` |
+| `distance` | JSONB | `{az, en, ru}` |
+| `tags` | JSONB | string array, default `[]` |
+| `stops` | JSONB | array of `{name: {az,en,ru}, description: {az,en,ru}, image, sort_order}` |
+| `image` | TEXT | plain string, not localized |
+| `pass_url` | TEXT | plain string, not localized |
+| `source` | TEXT | provenance tag, e.g. `figma` / `draft` |
 | `is_published` | BOOLEAN | default `TRUE` |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
