@@ -57,7 +57,12 @@ function localizeMuseum(row, lang) {
     slug: row.slug,
     name: pickLang(row.name, lang),
     short_description: pickLang(row.short_description, lang),
+    image: row.image,
+    working_hours: row.working_hours,
+    rating: row.rating,
+    ticket_price: row.ticket_price,
     address: pickLang(row.address, lang),
+    ticket_url: row.ticket_url,
     sort_order: row.sort_order,
   };
 }
@@ -68,7 +73,12 @@ function fullMuseum(row) {
     slug: row.slug,
     name: row.name,
     short_description: row.short_description,
+    image: row.image,
+    working_hours: row.working_hours,
+    rating: row.rating,
+    ticket_price: row.ticket_price,
     address: row.address,
+    ticket_url: row.ticket_url,
     sort_order: row.sort_order,
     created_at: row.created_at,
     updated_at: row.updated_at,
@@ -110,7 +120,9 @@ app.get('/api/museums', async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, slug, name, short_description, address, sort_order, created_at, updated_at
+      `SELECT id, slug, name, short_description, address, sort_order,
+              image, working_hours, rating, ticket_price, ticket_url,
+              created_at, updated_at
          FROM museums
         WHERE is_published = TRUE
         ORDER BY sort_order ASC, id ASC`
@@ -137,7 +149,9 @@ app.get('/api/museums/:slug', async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, slug, name, short_description, address, sort_order, created_at, updated_at
+      `SELECT id, slug, name, short_description, address, sort_order,
+              image, working_hours, rating, ticket_price, ticket_url,
+              created_at, updated_at
          FROM museums
         WHERE slug = $1 AND is_published = TRUE
         LIMIT 1`,

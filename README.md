@@ -27,10 +27,10 @@ npm run seed      # imports data/museums.json (upsert by slug)
 npm start         # starts the server
 ```
 
-> **Note:** `data/museums.json` currently holds placeholder content (3 museums)
-> in the correct trilingual format. Replace it with the real file from the
-> frontend project and re-run `npm run seed` — the seed upserts by `slug`,
-> so re-running is safe.
+> **Note:** `data/museums.json` is synced from the `icherisheher-home` frontend
+> repo. The boot-time auto-setup re-runs the seed on every start — it upserts
+> by `slug`, so refreshing this file and redeploying is always safe (existing
+> rows get updated, new slugs get inserted, nothing is duplicated).
 
 ## Endpoints
 
@@ -45,20 +45,29 @@ Published museums only (`is_published = TRUE`), ordered by `sort_order`.
 
 ```json
 {
-  "count": 3,
+  "count": 4,
   "lang": "en",
   "data": [
     {
       "id": 1,
-      "slug": "shirvanshahs-palace",
-      "name": "Palace of the Shirvanshahs",
+      "slug": "underground-hammam",
+      "name": "Underground Hammam",
       "short_description": "...",
-      "address": "76 Saray Lane, Icherisheher, Baku",
+      "image": "assets/img/museum-hammam.jpg",
+      "working_hours": "09:00 – 18:00",
+      "rating": 4.9,
+      "ticket_price": "From 10 AZN per person",
+      "address": "50, Boyuk Gala Street",
+      "ticket_url": "#",
       "sort_order": 1
     }
   ]
 }
 ```
+
+`image`, `working_hours`, `rating`, `ticket_price` and `ticket_url` are plain
+values (not trilingual) — only `name`, `short_description` and `address` are
+localized per `{az, en, ru}`. `rating` is a number.
 
 ### `GET /api/museums/:slug?lang=az|en|ru`
 Single published museum by slug. `404` if missing or unpublished.
@@ -73,7 +82,7 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 
 ## Database schema
 
-`migrations/001_create_museums.sql`:
+`migrations/001_create_museums.sql` + `002_add_museum_details.sql`:
 
 | Column | Type | Notes |
 |---|---|---|
@@ -82,6 +91,11 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `name` | JSONB | `{az, en, ru}` |
 | `short_description` | JSONB | `{az, en, ru}` |
 | `address` | JSONB | `{az, en, ru}` |
+| `image` | TEXT | plain string, not localized |
+| `working_hours` | TEXT | plain string, not localized |
+| `rating` | REAL | numeric, e.g. `4.9` |
+| `ticket_price` | TEXT | plain string, not localized |
+| `ticket_url` | TEXT | plain string, not localized |
 | `is_published` | BOOLEAN | default `TRUE` |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |

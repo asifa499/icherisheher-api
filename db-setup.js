@@ -49,14 +49,22 @@ async function runSeed(client) {
     validateMuseum(m, i);
 
     await client.query(
-      `INSERT INTO museums (slug, name, short_description, address, is_published, sort_order)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO museums (
+         slug, name, short_description, address, is_published, sort_order,
+         image, working_hours, rating, ticket_price, ticket_url
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT (slug) DO UPDATE SET
          name              = EXCLUDED.name,
          short_description = EXCLUDED.short_description,
          address           = EXCLUDED.address,
          is_published      = EXCLUDED.is_published,
-         sort_order        = EXCLUDED.sort_order`,
+         sort_order        = EXCLUDED.sort_order,
+         image              = EXCLUDED.image,
+         working_hours      = EXCLUDED.working_hours,
+         rating             = EXCLUDED.rating,
+         ticket_price       = EXCLUDED.ticket_price,
+         ticket_url         = EXCLUDED.ticket_url`,
       [
         m.slug,
         JSON.stringify(m.name),
@@ -64,16 +72,38 @@ async function runSeed(client) {
         JSON.stringify(m.address || {}),
         m.is_published !== false,
         Number.isInteger(m.sort_order) ? m.sort_order : i + 1,
+        m.image ?? null,
+        m.working_hours ?? null,
+        typeof m.rating === 'number' ? m.rating : null,
+        m.ticket_price ?? null,
+        m.ticket_url ?? null,
       ]
     );
     console.log(`✓ ${m.slug}`);
   }
 
+  // Unpublish (never delete) rows whose slug is no longer in the bundled
+  // JSON. A stale row predates fields like rating/image/ticket_price and
+  // would otherwise reach the API with those as null, and the frontend
+  // calls e.g. `rating.toFixed(1)` with no null guard.
+  const slugs = museums.map((m) => m.slug);
+  const { rowCount } = await client.query(
+    `UPDATE museums SET is_published = FALSE
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+    [slugs]
+  );
+  if (rowCount > 0) {
+    console.log(`Unpublished ${rowCount} stale museum(s) no longer in data/museums.json.`);
+  }
+
   console.log(`Seed complete: ${museums.length} museums upserted.`);
 }
 
-// Idempotent, safe-on-every-boot setup. Migrations only run the first time
-// (when the museums table doesn't exist yet); the seed step always runs,
+// Idempotent, safe-on-every-boot setup. Migrations always run — every
+// migration file is written with IF NOT EXISTS / CREATE OR REPLACE, so
+// re-running them against an already-migrated DB is a no-op — which is what
+// lets a new migration (e.g. adding a column) reach a database that was
+// already set up by an earlier deploy. The seed step always runs too,
 // re-syncing data/museums.json into the table by upserting on slug — existing
 // rows get their changed fields updated, new slugs get inserted, and nothing
 // is ever duplicated. Everything runs in a single transaction.
@@ -81,16 +111,15 @@ async function ensureDatabaseSetup(pool) {
   const client = await pool.connect();
   try {
     const exists = await tableExists(client, 'museums');
+    console.log(
+      exists
+        ? 'DB already migrated (museums table exists) — re-applying migrations + re-syncing seed data...'
+        : 'museums table not found — running migration...'
+    );
 
     await client.query('BEGIN');
     try {
-      if (!exists) {
-        console.log('museums table not found — running migration...');
-        await runMigrations(client);
-      } else {
-        console.log('DB already migrated (museums table exists) — re-syncing seed data...');
-      }
-
+      await runMigrations(client);
       await runSeed(client);
       await client.query('COMMIT');
       console.log('Auto DB setup complete.');
