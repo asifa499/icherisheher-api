@@ -297,6 +297,7 @@ app.get('/', (req, res) => {
       'GET /api/places/:slug',
       'GET /api/passes',
       'GET /api/passes/:slug',
+      'GET /api/config',
     ],
   });
 });
@@ -724,6 +725,23 @@ app.get('/api/passes/:slug', async (req, res) => {
     res.json(lang ? localizePass(rows[0], lang) : fullPass(rows[0]));
   } catch (err) {
     console.error(`GET /api/passes/${slug} failed:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/config
+// Returns the enabled/disabled state of every Home page section, keyed by
+// section name, so the frontend can hide a section without a redeploy.
+app.get('/api/config', async (req, res) => {
+  try {
+    const { rows } = await pool.query('SELECT key, enabled FROM feature_flags');
+    const sections = {};
+    for (const row of rows) {
+      sections[row.key] = row.enabled;
+    }
+    res.json({ sections });
+  } catch (err) {
+    console.error('GET /api/config failed:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

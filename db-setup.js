@@ -11,6 +11,22 @@ const NEWS_SEED_FILE = path.join(__dirname, 'data', 'news.json');
 const PLACES_SEED_FILE = path.join(__dirname, 'data', 'places.json');
 const PASSES_SEED_FILE = path.join(__dirname, 'data', 'passes.json');
 
+// One row per Home page section. Order here is display order, not enforced
+// by the schema (feature_flags has no sort_order column).
+const FEATURE_FLAG_SECTIONS = [
+  'hero',
+  'intro',
+  'museums',
+  'routes',
+  'events',
+  'resources',
+  'nearby',
+  'citypass',
+  'appar',
+  'social',
+  'footer',
+];
+
 function validateMuseum(item, i) {
   if (!item.slug || typeof item.slug !== 'string') {
     throw new Error(`Item ${i}: missing or invalid "slug"`);
@@ -513,6 +529,22 @@ async function seedPasses(client) {
   console.log(`Seed complete: ${passes.length} passes upserted.`);
 }
 
+// Inserts one row per Home page section, defaulting to enabled = TRUE.
+// Unlike the other seeders, this never overwrites an existing row — a
+// section an admin has already toggled off must stay off across deploys —
+// it only inserts keys that are missing (e.g. a newly added section).
+async function seedFeatureFlags(client) {
+  for (const key of FEATURE_FLAG_SECTIONS) {
+    await client.query(
+      `INSERT INTO feature_flags (key, enabled)
+       VALUES ($1, TRUE)
+       ON CONFLICT (key) DO NOTHING`,
+      [key]
+    );
+  }
+  console.log(`Seed complete: ${FEATURE_FLAG_SECTIONS.length} feature flag(s) ensured.`);
+}
+
 // Syncs every bundled seed file into its table.
 async function runSeed(client) {
   await seedMuseums(client);
@@ -521,6 +553,7 @@ async function runSeed(client) {
   await seedNews(client);
   await seedPlaces(client);
   await seedPasses(client);
+  await seedFeatureFlags(client);
 }
 
 // Idempotent, safe-on-every-boot setup. Migrations always run — every
@@ -567,6 +600,7 @@ module.exports = {
   seedNews,
   seedPlaces,
   seedPasses,
+  seedFeatureFlags,
   runSeed,
   ensureDatabaseSetup,
 };

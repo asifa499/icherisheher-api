@@ -1,7 +1,7 @@
 # icherisheher-api
 
 İçərişəhər Digital Experience Ecosystem — public REST API.
-Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route, event, news, place and City Pass content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
+Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route, event, news, place, City Pass and feature flag content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
 
 ## Stack
 
@@ -22,8 +22,8 @@ Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
 ```bash
 npm install
-npm run migrate   # creates the museums + routes + events + news + places + passes tables (migrations/*.sql in order)
-npm run seed      # imports data/museums.json + data/routes.json + data/events.json + data/news.json + data/places.json + data/passes.json (upsert by slug)
+npm run migrate   # creates the museums + routes + events + news + places + passes + feature_flags tables (migrations/*.sql in order)
+npm run seed      # imports data/museums.json + data/routes.json + data/events.json + data/news.json + data/places.json + data/passes.json (upsert by slug), and ensures one feature_flags row per Home section
 npm start         # starts the server
 ```
 
@@ -40,6 +40,10 @@ npm start         # starts the server
 > on every start — it upserts by `slug`, so refreshing these files and
 > redeploying is always safe (existing rows get updated, new slugs get
 > inserted, nothing is duplicated).
+> `feature_flags` has no seed JSON file — the boot-time auto-setup inserts one
+> row per Home section (defaulting to `enabled = TRUE`) only if that key is
+> missing; an existing row (e.g. a section an admin toggled off) is never
+> overwritten.
 
 ## Endpoints
 
@@ -292,6 +296,29 @@ string).
 ### `GET /api/passes/:slug?lang=az|en|ru`
 Single published pass by slug. `404` if missing or unpublished.
 
+### `GET /api/config`
+Enabled/disabled state of every Home page section, keyed by section name, so
+the frontend can hide a section without a redeploy. No `?lang=` — the values
+are plain booleans.
+
+```json
+{
+  "sections": {
+    "hero": true,
+    "intro": true,
+    "museums": true,
+    "routes": true,
+    "events": true,
+    "resources": true,
+    "nearby": true,
+    "citypass": true,
+    "appar": true,
+    "social": true,
+    "footer": true
+  }
+}
+```
+
 ## CORS
 
 Allowlist only:
@@ -417,6 +444,14 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `is_published` | BOOLEAN | default `TRUE` |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
+| `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+`migrations/008_create_feature_flags.sql`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `key` | TEXT PK | section name, e.g. `hero` / `museums` / `citypass` |
+| `enabled` | BOOLEAN | default `TRUE` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
 
 ## Deploy to Railway
