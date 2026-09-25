@@ -1,7 +1,7 @@
 # icherisheher-api
 
 İçərişəhər Digital Experience Ecosystem — public REST API.
-Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route, event, news and place content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
+Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museum, route, event, news, place and City Pass content to the frontend at `https://asifa499.github.io/icherisheher-home/`.
 
 ## Stack
 
@@ -22,13 +22,17 @@ Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
 ```bash
 npm install
-npm run migrate   # creates the museums + routes + events + news + places tables (migrations/*.sql in order)
-npm run seed      # imports data/museums.json + data/routes.json + data/events.json + data/news.json + data/places.json (upsert by slug)
+npm run migrate   # creates the museums + routes + events + news + places + passes tables (migrations/*.sql in order)
+npm run seed      # imports data/museums.json + data/routes.json + data/events.json + data/news.json + data/places.json + data/passes.json (upsert by slug)
 npm start         # starts the server
 ```
 
 > **Note:** `data/museums.json`, `data/routes.json`, `data/events.json`,
-> `data/news.json` and `data/places.json` are synced from the `icherisheher-home` frontend repo.
+> `data/news.json`, `data/places.json` and `data/passes.json` are synced from
+> the `icherisheher-home` frontend repo (`data/passes.json` there uses
+> slightly different field names — `tagline` → `description`, `duration_label`
+> → `duration`, each feature's `text` → `label` — everything else copies
+> straight across).
 > `data/places.json` has no upstream counterpart yet — the frontend's
 > "See What's Nearby" section is still unbuilt — so it currently holds
 > placeholder entries written against this schema; replace it wholesale once
@@ -245,6 +249,49 @@ directly (node-pg would otherwise serialize `NUMERIC` as a string).
 ### `GET /api/places/:slug?lang=az|en|ru`
 Single published place by slug. `404` if missing or unpublished.
 
+### `GET /api/passes?lang=az|en|ru`
+Published City Pass tiers only (`is_published = TRUE`), ordered by
+`sort_order`. Same contract as the other collections — with `?lang=` the
+trilingual fields (including each feature's `label`) are flattened to that
+language (fallback: `az`); without `?lang=` the full trilingual objects are
+returned.
+
+```json
+{
+  "count": 3,
+  "lang": "en",
+  "data": [
+    {
+      "id": 2,
+      "slug": "explorer-pass",
+      "name": "Explorer Pass",
+      "description": "The right balance for a weekend visit",
+      "features": [
+        { "label": "Entry to all 9 museums", "included": true },
+        { "label": "AR Time Machine experience", "included": false }
+      ],
+      "price": 42,
+      "currency": "AZN",
+      "duration": "24h",
+      "is_featured": true,
+      "buy_url": "#",
+      "sort_order": 2
+    }
+  ]
+}
+```
+
+`price`, `currency`, `duration`, `is_featured`, `buy_url` and each feature's
+`included` are plain values (not trilingual) — only `name`, `description` and
+each feature's `label` are localized per `{az, en, ru}`. `features` is a JSONB
+array and its order is the display order (no separate per-feature sort key).
+`price` is stored as `NUMERIC(10, 2)` but cast to `float8` on the way out, so
+it arrives as a JSON number (node-pg would otherwise serialize `NUMERIC` as a
+string).
+
+### `GET /api/passes/:slug?lang=az|en|ru`
+Single published pass by slug. `404` if missing or unpublished.
+
 ## CORS
 
 Allowlist only:
@@ -348,6 +395,25 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `lat` | NUMERIC(9,6) | latitude, served as a JSON number (cast to `float8`) |
 | `lng` | NUMERIC(9,6) | longitude, served as a JSON number (cast to `float8`) |
 | `source` | TEXT | provenance tag, e.g. `figma` / `placeholder` |
+| `is_published` | BOOLEAN | default `TRUE` |
+| `sort_order` | INTEGER | default `0` |
+| `created_at` | TIMESTAMPTZ | default `NOW()` |
+| `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+`migrations/007_create_passes.sql`:
+
+| Column | Type | Notes |
+|---|---|---|
+| `id` | SERIAL PK | |
+| `slug` | TEXT UNIQUE | URL identifier |
+| `name` | JSONB | `{az, en, ru}` |
+| `description` | JSONB | `{az, en, ru}`, subtitle/tagline |
+| `features` | JSONB | array of `{label: {az,en,ru}, included: boolean}`; array order is display order |
+| `price` | NUMERIC(10,2) | served as a JSON number (cast to `float8`) |
+| `currency` | TEXT | plain string, e.g. `AZN` |
+| `duration` | TEXT | plain string, e.g. `24h` |
+| `is_featured` | BOOLEAN | default `FALSE` |
+| `buy_url` | TEXT | plain string, not localized |
 | `is_published` | BOOLEAN | default `TRUE` |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |

@@ -9,6 +9,7 @@ const ROUTES_SEED_FILE = path.join(__dirname, 'data', 'routes.json');
 const EVENTS_SEED_FILE = path.join(__dirname, 'data', 'events.json');
 const NEWS_SEED_FILE = path.join(__dirname, 'data', 'news.json');
 const PLACES_SEED_FILE = path.join(__dirname, 'data', 'places.json');
+const PASSES_SEED_FILE = path.join(__dirname, 'data', 'passes.json');
 
 function validateMuseum(item, i) {
   if (!item.slug || typeof item.slug !== 'string') {
@@ -85,6 +86,21 @@ function validatePlace(item, i) {
     if (value !== undefined && value !== null && typeof value !== 'number') {
       throw new Error(`Item ${i} (${item.slug}): "${key}" must be a number or null`);
     }
+  }
+}
+
+function validatePass(item, i) {
+  if (!item.slug || typeof item.slug !== 'string') {
+    throw new Error(`Item ${i}: missing or invalid "slug"`);
+  }
+  if (!item.name || typeof item.name !== 'object') {
+    throw new Error(`Item ${i} (${item.slug}): "name" must be a trilingual object {az, en, ru}`);
+  }
+  if (item.features !== undefined && !Array.isArray(item.features)) {
+    throw new Error(`Item ${i} (${item.slug}): "features" must be an array`);
+  }
+  if (item.price !== undefined && item.price !== null && typeof item.price !== 'number') {
+    throw new Error(`Item ${i} (${item.slug}): "price" must be a number or null`);
   }
 }
 
@@ -433,6 +449,70 @@ async function seedPlaces(client) {
   console.log(`Seed complete: ${places.length} places upserted.`);
 }
 
+// Upserts data/passes.json into the passes table via `client`.
+// Same idempotent shape as the other seeders: upsert by slug, never delete.
+async function seedPasses(client) {
+  const raw = fs.readFileSync(PASSES_SEED_FILE, 'utf8');
+  const passes = JSON.parse(raw);
+
+  if (!Array.isArray(passes)) {
+    throw new Error('data/passes.json must be a JSON array of pass objects');
+  }
+
+  for (let i = 0; i < passes.length; i++) {
+    const p = passes[i];
+    validatePass(p, i);
+
+    await client.query(
+      `INSERT INTO passes (
+         slug, name, description, features,
+         price, currency, duration, is_featured, buy_url,
+         is_published, sort_order
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       ON CONFLICT (slug) DO UPDATE SET
+         name         = EXCLUDED.name,
+         description  = EXCLUDED.description,
+         features     = EXCLUDED.features,
+         price        = EXCLUDED.price,
+         currency     = EXCLUDED.currency,
+         duration     = EXCLUDED.duration,
+         is_featured  = EXCLUDED.is_featured,
+         buy_url      = EXCLUDED.buy_url,
+         is_published = EXCLUDED.is_published,
+         sort_order   = EXCLUDED.sort_order`,
+      [
+        p.slug,
+        JSON.stringify(p.name),
+        JSON.stringify(p.description || {}),
+        JSON.stringify(Array.isArray(p.features) ? p.features : []),
+        typeof p.price === 'number' ? p.price : null,
+        p.currency ?? null,
+        p.duration ?? null,
+        p.is_featured === true,
+        p.buy_url ?? null,
+        p.is_published !== false,
+        Number.isInteger(p.sort_order) ? p.sort_order : i + 1,
+      ]
+    );
+    console.log(`✓ ${p.slug}`);
+  }
+
+  // Same rule as the other collections: unpublish (never delete) rows whose
+  // slug is no longer in the bundled JSON, so stale rows can't reach the API.
+  const slugs = passes.map((p) => p.slug);
+  const { rowCount } = await client.query(
+    `UPDATE passes SET is_published = FALSE
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+    [slugs]
+  );
+  if (rowCount > 0) {
+    console.log(`Unpublished ${rowCount} stale pass(es) no longer in data/passes.json.`);
+  }
+
+  console.log(`Seed complete: ${passes.length} passes upserted.`);
+}
+
 // Syncs every bundled seed file into its table.
 async function runSeed(client) {
   await seedMuseums(client);
@@ -440,6 +520,7 @@ async function runSeed(client) {
   await seedEvents(client);
   await seedNews(client);
   await seedPlaces(client);
+  await seedPasses(client);
 }
 
 // Idempotent, safe-on-every-boot setup. Migrations always run — every
@@ -448,7 +529,7 @@ async function runSeed(client) {
 // lets a new migration (e.g. adding a column) reach a database that was
 // already set up by an earlier deploy. The seed step always runs too,
 // re-syncing data/museums.json, data/routes.json, data/events.json,
-// data/news.json and data/places.json into their tables by
+// data/news.json, data/places.json and data/passes.json into their tables by
 // upserting on slug — existing rows get their changed fields updated, new
 // slugs get inserted, and nothing is ever duplicated. Everything runs in a
 // single transaction.
@@ -485,6 +566,7 @@ module.exports = {
   seedEvents,
   seedNews,
   seedPlaces,
+  seedPasses,
   runSeed,
   ensureDatabaseSetup,
 };

@@ -1,0 +1,86 @@
+[
+  {
+    "slug": "core-pass",
+    "name": {
+      "az": "Core Pass",
+      "en": "Core Pass",
+      "ru": "Core Pass"
+    },
+    "description": {
+      "az": "Həftəsonu səfəri üçün doğru balans",
+      "en": "The right balance for a weekend visit",
+      "ru": "Правильный баланс для визита выходного дня"
+    },
+    "features": [
+      { "label": { "az": "9 muzeyin hamısına giriş", "en": "Entry to all 9 museums", "ru": "Вход во все 9 музеев" }, "included": true },
+      { "label": { "az": "Pulsuz gəzinti turu + 1 tematik tur", "en": "Free walking tour + 1 themed tour", "ru": "Бесплатная пешая экскурсия + 1 тематический тур" }, "included": true },
+      { "label": { "az": "Genişləndirilmiş audio bələdçi (15 obyekt)", "en": "Extended audio guide (15 sites)", "ru": "Расширенный аудиогид (15 объектов)" }, "included": true },
+      { "label": { "az": "Tərəfdaş kafelərdə 20% endirim", "en": "20% discount in partner cafés", "ru": "Скидка 20% в кафе-партнёрах" }, "included": false },
+      { "label": { "az": "Qız Qalasında növbəsiz giriş", "en": "Skip-the-line at Maiden Tower", "ru": "Без очереди в Девичью башню" }, "included": false },
+      { "label": { "az": "AR Time Machine təcrübəsi", "en": "AR Time Machine experience", "ru": "Опыт AR Time Machine" }, "included": false }
+    ],
+    "price": 19,
+    "currency": "AZN",
+    "duration": "24h",
+    "is_featured": false,
+    "buy_url": "#",
+    "is_published": true,
+    "sort_order": 1
+  },
+  {
+    "slug": "explorer-pass",
+    "name": {
+      "az": "Explorer Pass",
+      "en": "Explorer Pass",
+      "ru": "Explorer Pass"
+    },
+    "description": {
+      "az": "Həftəsonu səfəri üçün doğru balans",
+      "en": "The right balance for a weekend visit",
+      "ru": "Правильный баланс для визита выходного дня"
+    },
+    "features": [
+      { "label": { "az": "9 muzeyin hamısına giriş", "en": "Entry to all 9 museums", "ru": "Вход во все 9 музеев" }, "included": true },
+      { "label": { "az": "Pulsuz gəzinti turu + 1 tematik tur", "en": "Free walking tour + 1 themed tour", "ru": "Бесплатная пешая экскурсия + 1 тематический тур" }, "included": true },
+      { "label": { "az": "Genişləndirilmiş audio bələdçi (15 obyekt)", "en": "Extended audio guide (15 sites)", "ru": "Расширенный аудиогид (15 объектов)" }, "included": true },
+      { "label": { "az": "Qız Qalasında növbəsiz giriş", "en": "Skip-the-line at Maiden Tower", "ru": "Без очереди в Девичью башню" }, "included": true },
+      { "label": { "az": "Tərəfdaş kafelərdə 20% endirim", "en": "20% discount in partner cafés", "ru": "Скидка 20% в кафе-партнёрах" }, "included": true },
+      { "label": { "az": "AR Time Machine təcrübəsi", "en": "AR Time Machine experience", "ru": "Опыт AR Time Machine" }, "included": false }
+    ],
+    "price": 42,
+    "currency": "AZN",
+    "duration": "24h",
+    "is_featured": true,
+    "buy_url": "#",
+    "is_published": true,
+    "sort_order": 2
+  },
+  {
+    "slug": "premium-pass",
+    "name": {
+      "az": "Premium Pass",
+      "en": "Premium Pass",
+      "ru": "Premium Pass"
+    },
+    "description": {
+      "az": "Həftəsonu səfəri üçün doğru balans",
+      "en": "The right balance for a weekend visit",
+      "ru": "Правильный баланс для визита выходного дня"
+    },
+    "features": [
+      { "label": { "az": "9 muzeyin hamısına giriş", "en": "Entry to all 9 museums", "ru": "Вход во все 9 музеев" }, "included": true },
+      { "label": { "az": "Pulsuz gəzinti turu + 1 tematik tur", "en": "Free walking tour + 1 themed tour", "ru": "Бесплатная пешая экскурсия + 1 тематический тур" }, "included": true },
+      { "label": { "az": "Genişləndirilmiş audio bələdçi (15 obyekt)", "en": "Extended audio guide (15 sites)", "ru": "Расширенный аудиогид (15 объектов)" }, "included": true },
+      { "label": { "az": "Qız Qalasında növbəsiz giriş", "en": "Skip-the-line at Maiden Tower", "ru": "Без очереди в Девичью башню" }, "included": true },
+      { "label": { "az": "Tərəfdaş kafelərdə 20% endirim", "en": "20% discount in partner cafés", "ru": "Скидка 20% в кафе-партнёрах" }, "included": true },
+      { "label": { "az": "AR Time Machine təcrübəsi", "en": "AR Time Machine experience", "ru": "Опыт AR Time Machine" }, "included": true }
+    ],
+    "price": 79,
+    "currency": "AZN",
+    "duration": "72h",
+    "is_featured": false,
+    "buy_url": "#",
+    "is_published": true,
+    "sort_order": 3
+  }
+]

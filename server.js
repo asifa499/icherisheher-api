@@ -237,6 +237,47 @@ function fullPlace(row) {
   };
 }
 
+function localizeFeature(feature, lang) {
+  return {
+    label: pickLang(feature.label, lang),
+    included: feature.included === true,
+  };
+}
+
+function localizePass(row, lang) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: pickLang(row.name, lang),
+    description: pickLang(row.description, lang),
+    features: (row.features || []).map((f) => localizeFeature(f, lang)),
+    price: row.price,
+    currency: row.currency,
+    duration: row.duration,
+    is_featured: row.is_featured,
+    buy_url: row.buy_url,
+    sort_order: row.sort_order,
+  };
+}
+
+function fullPass(row) {
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    description: row.description,
+    features: row.features,
+    price: row.price,
+    currency: row.currency,
+    duration: row.duration,
+    is_featured: row.is_featured,
+    buy_url: row.buy_url,
+    sort_order: row.sort_order,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
 // --- Routes ---
 app.get('/', (req, res) => {
   res.json({
@@ -254,6 +295,8 @@ app.get('/', (req, res) => {
       'GET /api/news/:slug',
       'GET /api/places',
       'GET /api/places/:slug',
+      'GET /api/passes',
+      'GET /api/passes/:slug',
     ],
   });
 });
@@ -611,6 +654,76 @@ app.get('/api/places/:slug', async (req, res) => {
     res.json(lang ? localizePlace(rows[0], lang) : fullPlace(rows[0]));
   } catch (err) {
     console.error(`GET /api/places/${slug} failed:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/passes?lang=az|en|ru
+// Published only, ordered by sort_order. Same contract as the other
+// collections — with ?lang= the trilingual JSONB fields (including each
+// feature's label) are flattened to that language (fallback: az); without
+// ?lang= the full trilingual objects are returned.
+//
+// price is stored as NUMERIC — node-pg would hand that back as a string, so
+// it's cast to float8 here and reaches the frontend as a JS number.
+app.get('/api/passes', async (req, res) => {
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, name, description, features,
+              price::float8 AS price, currency, duration,
+              is_featured, buy_url, sort_order,
+              created_at, updated_at
+         FROM passes
+        WHERE is_published = TRUE
+        ORDER BY sort_order ASC, id ASC`
+    );
+
+    const data = lang ? rows.map((r) => localizePass(r, lang)) : rows.map(fullPass);
+    res.json({ count: data.length, lang: lang || null, data });
+  } catch (err) {
+    console.error('GET /api/passes failed:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// GET /api/passes/:slug?lang=az|en|ru
+app.get('/api/passes/:slug', async (req, res) => {
+  const { slug } = req.params;
+  const { lang } = req.query;
+
+  if (lang && !SUPPORTED_LANGS.includes(lang)) {
+    return res.status(400).json({
+      error: `Unsupported lang "${lang}". Supported: ${SUPPORTED_LANGS.join(', ')}.`,
+    });
+  }
+
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, slug, name, description, features,
+              price::float8 AS price, currency, duration,
+              is_featured, buy_url, sort_order,
+              created_at, updated_at
+         FROM passes
+        WHERE slug = $1 AND is_published = TRUE
+        LIMIT 1`,
+      [slug]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: 'Pass not found' });
+    }
+
+    res.json(lang ? localizePass(rows[0], lang) : fullPass(rows[0]));
+  } catch (err) {
+    console.error(`GET /api/passes/${slug} failed:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
