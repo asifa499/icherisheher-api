@@ -4,6 +4,7 @@ const cors = require('cors');
 const pool = require('./db');
 const { ensureDatabaseSetup } = require('./db-setup');
 const { uploadsRouter } = require('./uploads');
+const { adminRouter, adminEndpoints } = require('./admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -69,6 +70,7 @@ function localizeMuseum(row, lang) {
     ticket_price: row.ticket_price,
     address: pickLang(row.address, lang),
     ticket_url: row.ticket_url,
+    source: row.source,
     sort_order: row.sort_order,
   };
 }
@@ -85,6 +87,7 @@ function fullMuseum(row) {
     ticket_price: row.ticket_price,
     address: row.address,
     ticket_url: row.ticket_url,
+    source: row.source,
     sort_order: row.sort_order,
     created_at: row.created_at,
     updated_at: row.updated_at,
@@ -111,6 +114,7 @@ function localizeRoute(row, lang) {
     stops: (row.stops || []).map((s) => localizeStop(s, lang)),
     image: row.image,
     pass_url: row.pass_url,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
   };
@@ -127,6 +131,7 @@ function fullRoute(row) {
     stops: row.stops,
     image: row.image,
     pass_url: row.pass_url,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
     created_at: row.created_at,
@@ -147,6 +152,7 @@ function localizeEvent(row, lang) {
     time: row.time,
     image: row.image,
     ticket_url: row.ticket_url,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
   };
@@ -165,6 +171,7 @@ function fullEvent(row) {
     time: row.time,
     image: row.image,
     ticket_url: row.ticket_url,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
     created_at: row.created_at,
@@ -182,6 +189,7 @@ function localizeNews(row, lang) {
     image: row.image,
     image_position: row.image_position,
     published_date: row.published_date,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
   };
@@ -197,6 +205,7 @@ function fullNews(row) {
     image: row.image,
     image_position: row.image_position,
     published_date: row.published_date,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
     created_at: row.created_at,
@@ -217,6 +226,7 @@ function localizePlace(row, lang) {
     status: row.status,
     lat: row.lat,
     lng: row.lng,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
   };
@@ -235,6 +245,7 @@ function fullPlace(row) {
     status: row.status,
     lat: row.lat,
     lng: row.lng,
+    origin: row.origin,
     source: row.source,
     sort_order: row.sort_order,
     created_at: row.created_at,
@@ -261,6 +272,7 @@ function localizePass(row, lang) {
     duration: row.duration,
     is_featured: row.is_featured,
     buy_url: row.buy_url,
+    source: row.source,
     sort_order: row.sort_order,
   };
 }
@@ -277,35 +289,79 @@ function fullPass(row) {
     duration: row.duration,
     is_featured: row.is_featured,
     buy_url: row.buy_url,
+    source: row.source,
     sort_order: row.sort_order,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
 }
 
+// --- Endpoint registry ---
+// Single source of truth for GET / (endpoint list), GET /api/docs and the 405
+// handler. Keep it in sync when adding a route.
+const LANG_QUERY = { lang: 'az | en | ru — flatten trilingual fields (fallback az); omit for full {az, en, ru} objects' };
+
+const PUBLIC_ENDPOINTS = [
+  { method: 'GET', path: '/', summary: 'Service info + endpoint list.' },
+  { method: 'GET', path: '/api/docs', summary: 'This documentation.' },
+  { method: 'GET', path: '/api/health', summary: 'Liveness + DB check. 503 if the DB is unreachable.' },
+];
+for (const [name, extraQuery] of [
+  ['museums', {}],
+  ['routes', {}],
+  ['events', {}],
+  ['news', { type: 'review | news | announcement' }],
+  ['places', { category: 'free-form chip key, e.g. landmark' }],
+  ['passes', {}],
+]) {
+  PUBLIC_ENDPOINTS.push(
+    { method: 'GET', path: `/api/${name}`, summary: `Published ${name}.`, query: { ...LANG_QUERY, ...extraQuery } },
+    { method: 'GET', path: `/api/${name}/:slug`, summary: `One published item by slug. 404 if missing or unpublished.`, query: LANG_QUERY }
+  );
+}
+PUBLIC_ENDPOINTS.push(
+  { method: 'GET', path: '/api/config', summary: 'Enabled state of every Home section: {sections: {key: boolean}}.' },
+  { method: 'GET', path: '/uploads/:file', summary: 'Uploaded WebP image, cached for 1 year (immutable).' }
+);
+
+const ENDPOINTS = [
+  ...PUBLIC_ENDPOINTS.map((e) => ({ auth: false, ...e })),
+  {
+    method: 'POST',
+    path: '/api/upload',
+    auth: true,
+    summary: 'multipart/form-data, field "file" (jpg/png/webp ≤ 10 MB) → WebP ≤ 2000px wide. 201 {url}.',
+  },
+  ...adminEndpoints,
+];
+
 // --- Routes ---
 app.get('/', (req, res) => {
   res.json({
     name: 'icherisheher-api',
     status: 'ok',
-    endpoints: [
-      'GET /api/health',
-      'GET /api/museums',
-      'GET /api/museums/:slug',
-      'GET /api/routes',
-      'GET /api/routes/:slug',
-      'GET /api/events',
-      'GET /api/events/:slug',
-      'GET /api/news',
-      'GET /api/news/:slug',
-      'GET /api/places',
-      'GET /api/places/:slug',
-      'GET /api/passes',
-      'GET /api/passes/:slug',
-      'GET /api/config',
-      'POST /api/upload',
-      'GET /uploads/:file',
-    ],
+    docs: '/api/docs',
+    endpoints: ENDPOINTS.map((e) => `${e.method} ${e.path}${e.auth ? ' (admin)' : ''}`),
+  });
+});
+
+// GET /api/docs — machine-readable API reference. The admin body schemas are
+// generated from the same field specs admin.js validates against.
+app.get('/api/docs', (req, res) => {
+  res.json({
+    name: 'icherisheher-api',
+    admin_auth: {
+      header: 'X-Admin-Key',
+      note: 'Endpoints with auth: true need this header set to the server\'s ADMIN_API_KEY. 401 if missing/wrong; 503 if the server has no key configured.',
+    },
+    conventions: {
+      trilingual: 'Localized fields are objects {az, en, ru}. On writes, required ones need all three as non-empty strings; optional ones may hold any subset.',
+      images: 'image fields are an absolute URL (https://…, e.g. from POST /api/upload) or a path relative to the frontend site (assets/img/…); null = no image.',
+      source: 'source is "seed" (managed by the bundled data/*.json, re-synced on every deploy) or "admin" (written via the admin API — never overwritten by the seeder). Read-only.',
+      origin: 'origin is the content provenance tag from the seed files (figma | draft | placeholder), where the resource has one.',
+      errors: 'Errors are {error} or, for validation, {error: "Validation failed", details: ["field: message", ...]}. Wrong method on a known path → 405 with an Allow header.',
+    },
+    endpoints: ENDPOINTS,
   });
 });
 
@@ -337,7 +393,7 @@ app.get('/api/museums', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, name, short_description, address, sort_order,
               image, working_hours, rating, ticket_price, ticket_url,
-              created_at, updated_at
+              source, created_at, updated_at
          FROM museums
         WHERE is_published = TRUE
         ORDER BY sort_order ASC, id ASC`
@@ -366,7 +422,7 @@ app.get('/api/museums/:slug', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, name, short_description, address, sort_order,
               image, working_hours, rating, ticket_price, ticket_url,
-              created_at, updated_at
+              source, created_at, updated_at
          FROM museums
         WHERE slug = $1 AND is_published = TRUE
         LIMIT 1`,
@@ -401,7 +457,7 @@ app.get('/api/routes', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, title, duration, distance, tags, stops,
-              image, pass_url, source, sort_order,
+              image, pass_url, origin, source, sort_order,
               created_at, updated_at
          FROM routes
         WHERE is_published = TRUE
@@ -430,7 +486,7 @@ app.get('/api/routes/:slug', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, title, duration, distance, tags, stops,
-              image, pass_url, source, sort_order,
+              image, pass_url, origin, source, sort_order,
               created_at, updated_at
          FROM routes
         WHERE slug = $1 AND is_published = TRUE
@@ -468,7 +524,7 @@ app.get('/api/events', async (req, res) => {
       `SELECT id, slug, title, description, category, venue,
               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
               TO_CHAR(end_date,   'YYYY-MM-DD') AS end_date,
-              time, image, ticket_url, source, sort_order,
+              time, image, ticket_url, origin, source, sort_order,
               created_at, updated_at
          FROM events
         WHERE is_published = TRUE
@@ -499,7 +555,7 @@ app.get('/api/events/:slug', async (req, res) => {
       `SELECT id, slug, title, description, category, venue,
               TO_CHAR(start_date, 'YYYY-MM-DD') AS start_date,
               TO_CHAR(end_date,   'YYYY-MM-DD') AS end_date,
-              time, image, ticket_url, source, sort_order,
+              time, image, ticket_url, origin, source, sort_order,
               created_at, updated_at
          FROM events
         WHERE slug = $1 AND is_published = TRUE
@@ -543,7 +599,7 @@ app.get('/api/news', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, type, title, excerpt, image, image_position,
               TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
-              source, sort_order, created_at, updated_at
+              origin, source, sort_order, created_at, updated_at
          FROM news
         WHERE is_published = TRUE
           AND ($1::text IS NULL OR type = $1)
@@ -574,7 +630,7 @@ app.get('/api/news/:slug', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, type, title, excerpt, image, image_position,
               TO_CHAR(published_date, 'YYYY-MM-DD') AS published_date,
-              source, sort_order, created_at, updated_at
+              origin, source, sort_order, created_at, updated_at
          FROM news
         WHERE slug = $1 AND is_published = TRUE
         LIMIT 1`,
@@ -616,7 +672,7 @@ app.get('/api/places', async (req, res) => {
       `SELECT id, slug, category, name, description, address,
               image, open_hours, status,
               lat::float8 AS lat, lng::float8 AS lng,
-              source, sort_order, created_at, updated_at
+              origin, source, sort_order, created_at, updated_at
          FROM places
         WHERE is_published = TRUE
           AND ($1::text IS NULL OR category = $1)
@@ -648,7 +704,7 @@ app.get('/api/places/:slug', async (req, res) => {
       `SELECT id, slug, category, name, description, address,
               image, open_hours, status,
               lat::float8 AS lat, lng::float8 AS lng,
-              source, sort_order, created_at, updated_at
+              origin, source, sort_order, created_at, updated_at
          FROM places
         WHERE slug = $1 AND is_published = TRUE
         LIMIT 1`,
@@ -687,7 +743,7 @@ app.get('/api/passes', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, name, description, features,
               price::float8 AS price, currency, duration,
-              is_featured, buy_url, sort_order,
+              is_featured, buy_url, source, sort_order,
               created_at, updated_at
          FROM passes
         WHERE is_published = TRUE
@@ -717,7 +773,7 @@ app.get('/api/passes/:slug', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, name, description, features,
               price::float8 AS price, currency, duration,
-              is_featured, buy_url, sort_order,
+              is_featured, buy_url, source, sort_order,
               created_at, updated_at
          FROM passes
         WHERE slug = $1 AND is_published = TRUE
@@ -756,12 +812,36 @@ app.get('/api/config', async (req, res) => {
 // POST /api/upload (admin-only image upload) + GET /uploads/:file
 app.use(uploadsRouter);
 
+// Admin writes: POST/PUT/PATCH/DELETE on every resource + PUT /api/config/:key
+app.use(adminRouter);
+
+// Known path, wrong method (e.g. GET /api/upload) → 405 instead of 404.
+const ENDPOINT_MATCHERS = ENDPOINTS.map((e) => ({
+  method: e.method,
+  re: new RegExp(`^${e.path.replace(/:[^/]+/g, '[^/]+')}/?$`),
+}));
+
+app.use((req, res, next) => {
+  const allowed = [...new Set(ENDPOINT_MATCHERS.filter((m) => m.re.test(req.path)).map((m) => m.method))];
+  if (allowed.length === 0) return next();
+  if (allowed.includes('GET')) allowed.push('HEAD');
+  res.set('Allow', allowed.join(', '));
+  res.status(405).json({ error: `Method ${req.method} not allowed. Allowed: ${allowed.join(', ')}.` });
+});
+
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
 // CORS rejections and other errors → JSON, not HTML
 app.use((err, req, res, next) => {
   if (err && err.message === 'Not allowed by CORS') {
     return res.status(403).json({ error: 'Origin not allowed' });
+  }
+  // express.json() parse / size failures
+  if (err && err.type === 'entity.parse.failed') {
+    return res.status(400).json({ error: 'Invalid JSON body' });
+  }
+  if (err && err.type === 'entity.too.large') {
+    return res.status(413).json({ error: 'Request body too large' });
   }
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal server error' });

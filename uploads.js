@@ -4,6 +4,7 @@ const path = require('path');
 const express = require('express');
 const multer = require('multer');
 const sharp = require('sharp');
+const { requireAdminKey } = require('./auth');
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || '/data/uploads';
 const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -34,30 +35,6 @@ class UnsupportedTypeError extends Error {
   constructor() {
     super('Unsupported file type. Allowed: jpg, png, webp.');
   }
-}
-
-// Constant-time comparison of the X-Admin-Key header against ADMIN_API_KEY.
-// Neither value is ever logged or included in a response.
-function requireAdminKey(req, res, next) {
-  const expected = process.env.ADMIN_API_KEY;
-  if (!expected) {
-    return res.status(503).json({ error: 'uploads disabled' });
-  }
-
-  const provided = req.get('X-Admin-Key');
-  if (!provided) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  // Hash both sides so timingSafeEqual always gets equal-length buffers and
-  // the comparison doesn't leak the key's length.
-  const a = crypto.createHash('sha256').update(provided).digest();
-  const b = crypto.createHash('sha256').update(expected).digest();
-  if (!crypto.timingSafeEqual(a, b)) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
-
-  next();
 }
 
 // Absolute base URL for returned links. PUBLIC_BASE_URL wins; otherwise
@@ -93,7 +70,15 @@ const router = express.Router();
 
 // POST /api/upload — multipart/form-data, field "file", X-Admin-Key header.
 // Re-encodes to WebP (max 2000px wide, quality 82) and returns { url }.
-router.post('/api/upload', requireAdminKey, handleMultipart, async (req, res) => {
+// Uploads keep their own 503 message ("uploads disabled") when no key is set.
+function requireUploadKey(req, res, next) {
+  if (!process.env.ADMIN_API_KEY) {
+    return res.status(503).json({ error: 'uploads disabled' });
+  }
+  requireAdminKey(req, res, next);
+}
+
+router.post('/api/upload', requireUploadKey, handleMultipart, async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'Missing file. Send multipart/form-data with field "file".' });
   }

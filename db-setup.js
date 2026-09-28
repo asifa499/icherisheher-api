@@ -169,7 +169,8 @@ async function seedMuseums(client) {
          working_hours      = EXCLUDED.working_hours,
          rating             = EXCLUDED.rating,
          ticket_price       = EXCLUDED.ticket_price,
-         ticket_url         = EXCLUDED.ticket_url`,
+         ticket_url         = EXCLUDED.ticket_url
+       WHERE museums.source = 'seed'`,
       [
         m.slug,
         JSON.stringify(m.name),
@@ -194,7 +195,8 @@ async function seedMuseums(client) {
   const slugs = museums.map((m) => m.slug);
   const { rowCount } = await client.query(
     `UPDATE museums SET is_published = FALSE
-      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE
+        AND source = 'seed'`,
     [slugs]
   );
   if (rowCount > 0) {
@@ -221,7 +223,7 @@ async function seedRoutes(client) {
     await client.query(
       `INSERT INTO routes (
          slug, title, duration, distance, tags, stops,
-         image, pass_url, source, is_published, sort_order
+         image, pass_url, origin, is_published, sort_order
        )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        ON CONFLICT (slug) DO UPDATE SET
@@ -232,9 +234,10 @@ async function seedRoutes(client) {
          stops        = EXCLUDED.stops,
          image        = EXCLUDED.image,
          pass_url     = EXCLUDED.pass_url,
-         source       = EXCLUDED.source,
+         origin       = EXCLUDED.origin,
          is_published = EXCLUDED.is_published,
-         sort_order   = EXCLUDED.sort_order`,
+         sort_order   = EXCLUDED.sort_order
+       WHERE routes.source = 'seed'`,
       [
         r.slug,
         JSON.stringify(r.title),
@@ -244,7 +247,7 @@ async function seedRoutes(client) {
         JSON.stringify(Array.isArray(r.stops) ? r.stops : []),
         r.image ?? null,
         r.pass_url ?? null,
-        r.source ?? null,
+        r.origin ?? r.source ?? null,
         r.is_published !== false,
         Number.isInteger(r.sort_order) ? r.sort_order : i + 1,
       ]
@@ -257,7 +260,8 @@ async function seedRoutes(client) {
   const slugs = routes.map((r) => r.slug);
   const { rowCount } = await client.query(
     `UPDATE routes SET is_published = FALSE
-      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE
+        AND source = 'seed'`,
     [slugs]
   );
   if (rowCount > 0) {
@@ -284,7 +288,7 @@ async function seedEvents(client) {
     await client.query(
       `INSERT INTO events (
          slug, title, description, category, venue,
-         start_date, end_date, time, image, ticket_url, source,
+         start_date, end_date, time, image, ticket_url, origin,
          is_published, sort_order
        )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
@@ -298,9 +302,10 @@ async function seedEvents(client) {
          time         = EXCLUDED.time,
          image        = EXCLUDED.image,
          ticket_url   = EXCLUDED.ticket_url,
-         source       = EXCLUDED.source,
+         origin       = EXCLUDED.origin,
          is_published = EXCLUDED.is_published,
-         sort_order   = EXCLUDED.sort_order`,
+         sort_order   = EXCLUDED.sort_order
+       WHERE events.source = 'seed'`,
       [
         e.slug,
         JSON.stringify(e.title),
@@ -312,7 +317,7 @@ async function seedEvents(client) {
         e.time ?? null,
         e.image ?? null,
         e.ticket_url ?? null,
-        e.source ?? null,
+        e.origin ?? e.source ?? null,
         e.is_published !== false,
         Number.isInteger(e.sort_order) ? e.sort_order : i + 1,
       ]
@@ -325,7 +330,8 @@ async function seedEvents(client) {
   const slugs = events.map((e) => e.slug);
   const { rowCount } = await client.query(
     `UPDATE events SET is_published = FALSE
-      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE
+        AND source = 'seed'`,
     [slugs]
   );
   if (rowCount > 0) {
@@ -353,7 +359,7 @@ async function seedNews(client) {
     await client.query(
       `INSERT INTO news (
          slug, type, title, excerpt, image, image_position,
-         published_date, source, is_published, sort_order
+         published_date, origin, is_published, sort_order
        )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        ON CONFLICT (slug) DO UPDATE SET
@@ -363,9 +369,10 @@ async function seedNews(client) {
          image          = EXCLUDED.image,
          image_position = EXCLUDED.image_position,
          published_date = EXCLUDED.published_date,
-         source         = EXCLUDED.source,
+         origin         = EXCLUDED.origin,
          is_published   = EXCLUDED.is_published,
-         sort_order     = EXCLUDED.sort_order`,
+         sort_order     = EXCLUDED.sort_order
+       WHERE news.source = 'seed'`,
       [
         n.slug,
         n.type ?? 'news',
@@ -374,7 +381,7 @@ async function seedNews(client) {
         n.image ?? null,
         n.image_position ?? null,
         n.published_date ?? null,
-        n.source ?? null,
+        n.origin ?? n.source ?? null,
         n.is_published !== false,
         Number.isInteger(n.sort_order) ? n.sort_order : i + 1,
       ]
@@ -387,7 +394,8 @@ async function seedNews(client) {
   const slugs = news.map((n) => n.slug);
   const { rowCount } = await client.query(
     `UPDATE news SET is_published = FALSE
-      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE
+        AND source = 'seed'`,
     [slugs]
   );
   if (rowCount > 0) {
@@ -414,7 +422,7 @@ async function seedPlaces(client) {
     await client.query(
       `INSERT INTO places (
          slug, category, name, description, address,
-         image, open_hours, status, lat, lng, source,
+         image, open_hours, status, lat, lng, origin,
          is_published, sort_order
        )
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
@@ -428,9 +436,10 @@ async function seedPlaces(client) {
          status       = EXCLUDED.status,
          lat          = EXCLUDED.lat,
          lng          = EXCLUDED.lng,
-         source       = EXCLUDED.source,
+         origin       = EXCLUDED.origin,
          is_published = EXCLUDED.is_published,
-         sort_order   = EXCLUDED.sort_order`,
+         sort_order   = EXCLUDED.sort_order
+       WHERE places.source = 'seed'`,
       [
         p.slug,
         p.category ?? 'other',
@@ -442,7 +451,7 @@ async function seedPlaces(client) {
         p.status ?? null,
         typeof p.lat === 'number' ? p.lat : null,
         typeof p.lng === 'number' ? p.lng : null,
-        p.source ?? null,
+        p.origin ?? p.source ?? null,
         p.is_published !== false,
         Number.isInteger(p.sort_order) ? p.sort_order : i + 1,
       ]
@@ -455,7 +464,8 @@ async function seedPlaces(client) {
   const slugs = places.map((p) => p.slug);
   const { rowCount } = await client.query(
     `UPDATE places SET is_published = FALSE
-      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE
+        AND source = 'seed'`,
     [slugs]
   );
   if (rowCount > 0) {
@@ -496,7 +506,8 @@ async function seedPasses(client) {
          is_featured  = EXCLUDED.is_featured,
          buy_url      = EXCLUDED.buy_url,
          is_published = EXCLUDED.is_published,
-         sort_order   = EXCLUDED.sort_order`,
+         sort_order   = EXCLUDED.sort_order
+       WHERE passes.source = 'seed'`,
       [
         p.slug,
         JSON.stringify(p.name),
@@ -519,7 +530,8 @@ async function seedPasses(client) {
   const slugs = passes.map((p) => p.slug);
   const { rowCount } = await client.query(
     `UPDATE passes SET is_published = FALSE
-      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE`,
+      WHERE NOT (slug = ANY($1::text[])) AND is_published = TRUE
+        AND source = 'seed'`,
     [slugs]
   );
   if (rowCount > 0) {
@@ -546,6 +558,14 @@ async function seedFeatureFlags(client) {
 }
 
 // Syncs every bundled seed file into its table.
+//
+// Row ownership: every content table has source = 'seed' | 'admin'. The
+// upserts below only update rows where source = 'seed' (ON CONFLICT ... WHERE),
+// and the stale-row unpublish is limited to seed rows too, so anything created
+// or edited through the admin API (which sets source = 'admin') is never
+// touched by a redeploy. The seed JSON files' own "source" key is the content
+// provenance tag ("figma" / "draft" / "placeholder") and is stored in the
+// `origin` column.
 async function runSeed(client) {
   await seedMuseums(client);
   await seedRoutes(client);

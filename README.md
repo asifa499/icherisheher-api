@@ -15,7 +15,7 @@ Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museu
 |---|---|---|
 | `DATABASE_URL` | ✅ | PostgreSQL connection string. On Railway, use the reference `${{Postgres.DATABASE_URL}}` from the Postgres service. SSL is applied automatically for public URLs and skipped for `railway.internal` / localhost. |
 | `PORT` | — | Server port. Railway injects it automatically; defaults to `3000` locally. |
-| `ADMIN_API_KEY` | — | Secret required in the `X-Admin-Key` header for `POST /api/upload`. If unset, uploads are disabled (`503`). Never commit or log it. |
+| `ADMIN_API_KEY` | — | Secret required in the `X-Admin-Key` header for every admin endpoint (writes + `POST /api/upload`). If unset, admin endpoints return `503`. Never commit or log it. |
 | `UPLOAD_DIR` | — | Where uploaded images are stored. Defaults to `/data/uploads` — on Railway, attach a volume mounted at `/data` so files survive redeploys. |
 | `PUBLIC_BASE_URL` | — | Origin used to build the absolute `url` returned by uploads (e.g. `https://icherisheher-api-production.up.railway.app`). Falls back to Railway's `RAILWAY_PUBLIC_DOMAIN`, then the request's own host. |
 
@@ -43,6 +43,13 @@ npm start         # starts the server
 > on every start — it upserts by `slug`, so refreshing these files and
 > redeploying is always safe (existing rows get updated, new slugs get
 > inserted, nothing is duplicated).
+> **Seed vs admin rows:** every content table has `source = 'seed' | 'admin'`.
+> The seeder only updates (and only unpublishes stale) rows with
+> `source = 'seed'`; any write through the admin API sets `source = 'admin'`,
+> after which that row is owned by the admin API and redeploys never touch it
+> again. To hand a row back to the seed file, set its `source` to `'seed'` in
+> SQL. The seed files' own `"source"` key (`figma` / `draft` / `placeholder`)
+> is the content provenance tag and is stored in the `origin` column.
 > `feature_flags` has no seed JSON file — the boot-time auto-setup inserts one
 > row per Home section (defaulting to `enabled = TRUE`) only if that key is
 > missing; an existing row (e.g. a section an admin toggled off) is never
@@ -75,6 +82,7 @@ Published museums only (`is_published = TRUE`), ordered by `sort_order`.
       "ticket_price": "From 10 AZN per person",
       "address": "50, Boyuk Gala Street",
       "ticket_url": "#",
+      "source": "seed",
       "sort_order": 1
     }
   ]
@@ -116,14 +124,15 @@ stop; without `?lang=` the full trilingual objects are returned.
       ],
       "image": "assets/img/route-classic-walk.jpg",
       "pass_url": "#",
-      "source": "figma",
+      "origin": "figma",
+      "source": "seed",
       "sort_order": 1
     }
   ]
 }
 ```
 
-`image`, `pass_url` and `source` are plain values (not trilingual) — only
+`image`, `pass_url`, `origin` and `source` are plain values (not trilingual) — only
 `title`, `duration`, `distance` and each stop's `name` / `description` are
 localized per `{az, en, ru}`. `tags` is a plain string array.
 
@@ -153,14 +162,15 @@ without `?lang=` the full trilingual objects are returned.
       "time": "19:00",
       "image": null,
       "ticket_url": "#",
-      "source": "figma",
+      "origin": "figma",
+      "source": "seed",
       "sort_order": 4
     }
   ]
 }
 ```
 
-`start_date`, `end_date`, `time`, `image`, `ticket_url` and `source` are plain
+`start_date`, `end_date`, `time`, `image`, `ticket_url`, `origin` and `source` are plain
 values (not trilingual) — only `title`, `description`, `category` and `venue`
 are localized per `{az, en, ru}`. The two dates are stored as `DATE` columns
 and always serialized as plain `YYYY-MM-DD` strings (never timestamps), so they
@@ -193,14 +203,15 @@ The optional `?type=` filter narrows the list to one kind: `review`, `news` or
       "image": "assets/img/resource-craftsmen.jpg",
       "image_position": null,
       "published_date": "2026-09-20",
-      "source": "placeholder",
+      "origin": "placeholder",
+      "source": "seed",
       "sort_order": 1
     }
   ]
 }
 ```
 
-`type`, `image`, `image_position`, `published_date` and `source` are plain
+`type`, `image`, `image_position`, `published_date`, `origin` and `source` are plain
 values (not trilingual) — only `title` and `excerpt` are localized per
 `{az, en, ru}`. `published_date` is stored as a `DATE` column and always
 serialized as a plain `YYYY-MM-DD` string (never a timestamp), so it matches
@@ -240,14 +251,15 @@ returns an empty list rather than a `400`.
       "status": "open",
       "lat": 40.366389,
       "lng": 49.837222,
-      "source": "placeholder",
+      "origin": "placeholder",
+      "source": "seed",
       "sort_order": 1
     }
   ]
 }
 ```
 
-`category`, `image`, `open_hours`, `status`, `lat`, `lng` and `source` are
+`category`, `image`, `open_hours`, `status`, `lat`, `lng`, `origin` and `source` are
 plain values (not trilingual) — only `name`, `description` and `address` are
 localized per `{az, en, ru}`. `lat`/`lng` are stored as `NUMERIC(9, 6)` but
 cast to `float8` on the way out, so they arrive as JSON numbers a map can use
@@ -282,6 +294,7 @@ returned.
       "duration": "24h",
       "is_featured": true,
       "buy_url": "#",
+      "source": "seed",
       "sort_order": 2
     }
   ]
@@ -371,6 +384,69 @@ are valid:
 Frontends should treat a value starting with `http://` or `https://` as
 absolute and anything else as relative to the site. `null` means no image.
 
+## Admin API
+
+Every write endpoint requires `X-Admin-Key: <ADMIN_API_KEY>` (`401` if
+missing/wrong, `503` if the server has no key) and a JSON body
+(`Content-Type: application/json`). The full field-by-field schema for each
+resource is served live at **`GET /api/docs`**, generated from the same specs
+the validator uses.
+
+For each of `museums`, `routes`, `events`, `news`, `places`, `passes`:
+
+| Method | Path | Effect |
+|---|---|---|
+| `POST` | `/api/<resource>` | Create. Body needs `slug` + the required fields. `201` with the row; `409` if the slug exists. |
+| `PUT` | `/api/<resource>/:slug` | Full update. Required fields must be present; omitted optional fields reset to their defaults. |
+| `PATCH` | `/api/<resource>/:slug` | Partial update. Only the fields sent are changed. |
+| `DELETE` | `/api/<resource>/:slug` | Soft delete: `is_published = false` (row is kept). Undo with `PATCH {"is_published": true}`. |
+
+Plus `PUT /api/config/:key` with `{"enabled": true|false}` to toggle a Home
+section (`404` for an unknown key).
+
+Rules:
+
+- Every write sets `source = 'admin'`, so the boot seeder never reverts it.
+- `slug` is required on `POST` (lowercase letters, digits, single hyphens) and
+  immutable afterwards. `id`, `source`, `created_at` and `updated_at` are
+  read-only. Unknown fields are rejected.
+- Trilingual fields must be objects with only `az` / `en` / `ru` string
+  values. Required ones (`name` or `title`, plus each route stop's `name` and
+  each pass feature's `label`) need all three as non-empty strings.
+- Responses return the full row, including `is_published` and `source`.
+- Admin writes work on unpublished rows as well. The public `GET` endpoints
+  only ever show published rows.
+
+Validation errors are `400` with every problem listed:
+
+```json
+{
+  "error": "Validation failed",
+  "details": [
+    "name.ru: required, must be a non-empty string",
+    "rating: must be between 0 and 5",
+    "foo: unknown field"
+  ]
+}
+```
+
+```bash
+curl -X PATCH -H "X-Admin-Key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
+  -d '{"ticket_price": "From 12 AZN per person"}' \
+  https://icherisheher-api-production.up.railway.app/api/museums/underground-hammam
+```
+
+### `GET /api/docs`
+Machine-readable reference: every endpoint (method, path, whether it needs
+the admin key, query params, and body schema for writes) plus the
+conventions above. `GET /` lists the same endpoints in short form.
+
+### Errors
+
+- A known path hit with the wrong method (e.g. `GET /api/upload`, `PUT /api/museums`) returns `405 {"error": "Method GET not allowed. Allowed: POST."}` with an `Allow` header.
+- Unknown paths return `404`.
+- A malformed JSON body returns `400 {"error": "Invalid JSON body"}`.
+
 ## CORS
 
 Allowlist only:
@@ -396,6 +472,7 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `ticket_price` | TEXT | plain string, not localized |
 | `ticket_url` | TEXT | plain string, not localized |
 | `is_published` | BOOLEAN | default `TRUE` |
+| `source` | TEXT | `seed` \| `admin` (CHECK), default `seed` — row ownership, see migration 009 |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
@@ -413,8 +490,9 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `stops` | JSONB | array of `{name: {az,en,ru}, description: {az,en,ru}, image, sort_order}` |
 | `image` | TEXT | plain string, not localized |
 | `pass_url` | TEXT | plain string, not localized |
-| `source` | TEXT | provenance tag, e.g. `figma` / `draft` |
+| `origin` | TEXT | provenance tag, e.g. `figma` / `draft` (was `source` before migration 009) |
 | `is_published` | BOOLEAN | default `TRUE` |
+| `source` | TEXT | `seed` \| `admin` (CHECK), default `seed` — row ownership, see migration 009 |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
@@ -434,8 +512,9 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `time` | TEXT | plain `"HH:MM"` string, not localized |
 | `image` | TEXT | plain string, not localized |
 | `ticket_url` | TEXT | plain string, not localized |
-| `source` | TEXT | provenance tag, e.g. `figma` / `draft` |
+| `origin` | TEXT | provenance tag, e.g. `figma` / `draft` (was `source` before migration 009) |
 | `is_published` | BOOLEAN | default `TRUE` |
+| `source` | TEXT | `seed` \| `admin` (CHECK), default `seed` — row ownership, see migration 009 |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
@@ -452,8 +531,9 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `image` | TEXT | plain string, not localized |
 | `image_position` | TEXT | CSS `object-position`, e.g. `26% center` |
 | `published_date` | DATE | calendar date, served as `YYYY-MM-DD` |
-| `source` | TEXT | provenance tag, e.g. `figma` / `placeholder` |
+| `origin` | TEXT | provenance tag, e.g. `figma` / `placeholder` (was `source` before migration 009) |
 | `is_published` | BOOLEAN | default `TRUE` |
+| `source` | TEXT | `seed` \| `admin` (CHECK), default `seed` — row ownership, see migration 009 |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
@@ -473,8 +553,9 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `status` | TEXT | `open` / `closed` / `temporarily_closed` |
 | `lat` | NUMERIC(9,6) | latitude, served as a JSON number (cast to `float8`) |
 | `lng` | NUMERIC(9,6) | longitude, served as a JSON number (cast to `float8`) |
-| `source` | TEXT | provenance tag, e.g. `figma` / `placeholder` |
+| `origin` | TEXT | provenance tag, e.g. `figma` / `placeholder` (was `source` before migration 009) |
 | `is_published` | BOOLEAN | default `TRUE` |
+| `source` | TEXT | `seed` \| `admin` (CHECK), default `seed` — row ownership, see migration 009 |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
@@ -494,9 +575,14 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `is_featured` | BOOLEAN | default `FALSE` |
 | `buy_url` | TEXT | plain string, not localized |
 | `is_published` | BOOLEAN | default `TRUE` |
+| `source` | TEXT | `seed` \| `admin` (CHECK), default `seed` — row ownership, see migration 009 |
 | `sort_order` | INTEGER | default `0` |
 | `created_at` | TIMESTAMPTZ | default `NOW()` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+`migrations/009_add_source_ownership.sql` renames the provenance column of
+routes / events / news / places from `source` to `origin` (once, guarded) and
+adds the `source` ownership column (above) to all six content tables.
 
 `migrations/008_create_feature_flags.sql`:
 
