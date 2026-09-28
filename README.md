@@ -15,6 +15,9 @@ Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museu
 |---|---|---|
 | `DATABASE_URL` | ✅ | PostgreSQL connection string. On Railway, use the reference `${{Postgres.DATABASE_URL}}` from the Postgres service. SSL is applied automatically for public URLs and skipped for `railway.internal` / localhost. |
 | `PORT` | — | Server port. Railway injects it automatically; defaults to `3000` locally. |
+| `ADMIN_API_KEY` | — | Secret required in the `X-Admin-Key` header for `POST /api/upload`. If unset, uploads are disabled (`503`). Never commit or log it. |
+| `UPLOAD_DIR` | — | Where uploaded images are stored. Defaults to `/data/uploads` — on Railway, attach a volume mounted at `/data` so files survive redeploys. |
+| `PUBLIC_BASE_URL` | — | Origin used to build the absolute `url` returned by uploads (e.g. `https://icherisheher-api-production.up.railway.app`). Falls back to Railway's `RAILWAY_PUBLIC_DOMAIN`, then the request's own host. |
 
 Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
@@ -318,6 +321,55 @@ are plain booleans.
   }
 }
 ```
+
+### `POST /api/upload`
+Admin-only image upload. Send `multipart/form-data` with one field named
+`file`, plus the header `X-Admin-Key: <ADMIN_API_KEY>`.
+
+- Accepts JPEG, PNG and WebP up to 10 MB (checked against the actual bytes,
+  not just the declared content type).
+- Every image is re-encoded with `sharp` to **WebP, quality 82, at most 2000px
+  wide** (never upscaled; EXIF orientation applied, metadata stripped).
+- Stored under `UPLOAD_DIR` with a random filename; the original is discarded.
+
+```bash
+curl -H "X-Admin-Key: $ADMIN_API_KEY" -F file=@photo.jpg \
+  https://icherisheher-api-production.up.railway.app/api/upload
+```
+
+```json
+{ "url": "https://icherisheher-api-production.up.railway.app/uploads/3f9c…e1.webp" }
+```
+
+| Status | Meaning |
+|---|---|
+| `201` | Stored — body is `{ url }` (absolute URL) |
+| `400` | No `file` field, or the file isn't a decodable image |
+| `401` | `X-Admin-Key` missing or wrong |
+| `413` | File larger than 10 MB |
+| `415` | Not JPEG / PNG / WebP |
+| `503` | `ADMIN_API_KEY` not configured — `{"error": "uploads disabled"}` |
+
+### `GET /uploads/:file`
+Serves an uploaded image as `image/webp` with
+`Cache-Control: public, max-age=31536000, immutable` — filenames are random
+and never reused, so a URL's content never changes. Unknown or malformed
+names return `404`.
+
+## Image field convention
+
+Every `image` field (museums, routes and each route stop, events, news,
+places) is a plain `TEXT` value that the API returns untouched. Two forms
+are valid:
+
+- **Absolute URL** — `https://…`, e.g. the `url` returned by
+  `POST /api/upload`, or any external CDN. Use as-is.
+- **Relative path** — e.g. `assets/img/museum-hammam.jpg`, as used by the
+  seed data synced from the frontend. Resolved by the frontend against its
+  own origin (the GitHub Pages site), exactly as before.
+
+Frontends should treat a value starting with `http://` or `https://` as
+absolute and anything else as relative to the site. `null` means no image.
 
 ## CORS
 

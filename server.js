@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
 const { ensureDatabaseSetup } = require('./db-setup');
+const { uploadsRouter } = require('./uploads');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -16,6 +17,10 @@ const NEWS_TYPES = ['review', 'news', 'announcement'];
 // those 304s as opaque/blocked, so the frontend fell back to local JSON.
 // Disabling etag generation means every request gets a full 200 response.
 app.set('etag', false);
+
+// Railway terminates TLS at its proxy — trust X-Forwarded-Proto so req.protocol
+// is "https" when building absolute upload URLs.
+app.set('trust proxy', 1);
 
 // --- CORS allowlist: GitHub Pages frontend + local development ---
 // This MUST be the first app.use() — it has to run on every request,
@@ -298,6 +303,8 @@ app.get('/', (req, res) => {
       'GET /api/passes',
       'GET /api/passes/:slug',
       'GET /api/config',
+      'POST /api/upload',
+      'GET /uploads/:file',
     ],
   });
 });
@@ -745,6 +752,9 @@ app.get('/api/config', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+// POST /api/upload (admin-only image upload) + GET /uploads/:file
+app.use(uploadsRouter);
 
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
