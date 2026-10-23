@@ -9,6 +9,8 @@ const { requireAdminKey } = require('./auth');
 const LANGS = ['az', 'en', 'ru'];
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+// ISO 8601 with an explicit offset, e.g. 2026-12-31T23:59:59Z or ...+04:00.
+const DATETIME_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})$/;
 // Sent back by GET but never writable — owned by the server.
 const READ_ONLY_FIELDS = ['id', 'source', 'created_at', 'updated_at'];
 
@@ -22,6 +24,7 @@ const t = {
   int: (opts = {}) => ({ kind: 'int', default: 0, ...opts }),
   bool: (opts = {}) => ({ kind: 'bool', default: false, ...opts }),
   date: (opts = {}) => ({ kind: 'date', default: null, ...opts }),
+  datetime: (opts = {}) => ({ kind: 'datetime', default: null, ...opts }),
   enum: (values, opts = {}) => ({ kind: 'enum', values, ...opts }),
   strings: (opts = {}) => ({ kind: 'strings', default: [], ...opts }),
   list: (item, opts = {}) => ({ kind: 'list', item, default: [], ...opts }),
@@ -91,6 +94,12 @@ function checkValue(spec, value, path, errors) {
     case 'date':
       if (value === null) return value;
       if (!isCalendarDate(value)) errors.push(`${path}: must be a YYYY-MM-DD date or null`);
+      return value;
+    case 'datetime':
+      if (value === null) return value;
+      if (typeof value !== 'string' || !DATETIME_RE.test(value) || Number.isNaN(Date.parse(value))) {
+        errors.push(`${path}: must be an ISO 8601 timestamp with a timezone (e.g. "2026-12-31T23:59:00Z") or null`);
+      }
       return value;
     case 'enum':
       if (!spec.values.includes(value)) {
@@ -267,6 +276,8 @@ const RESOURCES = [
       description: t.i18n(),
       features: t.list(FEATURE_FIELDS),
       price: t.number({ min: 0, max: 99999999.99 }),
+      old_price: t.number({ min: 0, max: 99999999.99 }),
+      discount_ends_at: t.datetime(),
       currency: t.text(),
       duration: t.text(),
       is_featured: t.bool(),
@@ -274,6 +285,7 @@ const RESOURCES = [
       ...COMMON_FIELDS,
     },
     select: `id, slug, name, description, features, price::float8 AS price,
+             old_price::float8 AS old_price, discount_ends_at,
              currency, duration, is_featured, buy_url, is_published, source,
              sort_order, created_at, updated_at`,
   },
@@ -471,6 +483,7 @@ function describeField(spec) {
     int: 'integer',
     bool: 'boolean',
     date: '"YYYY-MM-DD" | null',
+    datetime: 'ISO 8601 timestamp with timezone | null',
     enum: spec.values && spec.values.join(' | '),
     strings: 'string[]',
     list: 'array',

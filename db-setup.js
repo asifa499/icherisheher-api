@@ -118,6 +118,13 @@ function validatePass(item, i) {
   if (item.price !== undefined && item.price !== null && typeof item.price !== 'number') {
     throw new Error(`Item ${i} (${item.slug}): "price" must be a number or null`);
   }
+  if (item.old_price !== undefined && item.old_price !== null && typeof item.old_price !== 'number') {
+    throw new Error(`Item ${i} (${item.slug}): "old_price" must be a number or null`);
+  }
+  const ends = item.discount_ends_at;
+  if (ends !== undefined && ends !== null && (typeof ends !== 'string' || Number.isNaN(Date.parse(ends)))) {
+    throw new Error(`Item ${i} (${item.slug}): "discount_ends_at" must be an ISO 8601 timestamp or null`);
+  }
 }
 
 async function tableExists(client, tableName) {
@@ -492,15 +499,18 @@ async function seedPasses(client) {
     await client.query(
       `INSERT INTO passes (
          slug, name, description, features,
-         price, currency, duration, is_featured, buy_url,
+         price, old_price, discount_ends_at,
+         currency, duration, is_featured, buy_url,
          is_published, sort_order
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
        ON CONFLICT (slug) DO UPDATE SET
          name         = EXCLUDED.name,
          description  = EXCLUDED.description,
          features     = EXCLUDED.features,
          price        = EXCLUDED.price,
+         old_price    = EXCLUDED.old_price,
+         discount_ends_at = EXCLUDED.discount_ends_at,
          currency     = EXCLUDED.currency,
          duration     = EXCLUDED.duration,
          is_featured  = EXCLUDED.is_featured,
@@ -514,6 +524,8 @@ async function seedPasses(client) {
         JSON.stringify(p.description || {}),
         JSON.stringify(Array.isArray(p.features) ? p.features : []),
         typeof p.price === 'number' ? p.price : null,
+        typeof p.old_price === 'number' ? p.old_price : null,
+        p.discount_ends_at ?? null,
         p.currency ?? null,
         p.duration ?? null,
         p.is_featured === true,

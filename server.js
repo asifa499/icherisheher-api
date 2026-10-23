@@ -268,6 +268,8 @@ function localizePass(row, lang) {
     description: pickLang(row.description, lang),
     features: (row.features || []).map((f) => localizeFeature(f, lang)),
     price: row.price,
+    old_price: row.old_price,
+    discount_ends_at: row.discount_ends_at,
     currency: row.currency,
     duration: row.duration,
     is_featured: row.is_featured,
@@ -285,6 +287,8 @@ function fullPass(row) {
     description: row.description,
     features: row.features,
     price: row.price,
+    old_price: row.old_price,
+    discount_ends_at: row.discount_ends_at,
     currency: row.currency,
     duration: row.duration,
     is_featured: row.is_featured,
@@ -722,6 +726,19 @@ app.get('/api/places/:slug', async (req, res) => {
   }
 });
 
+// A promotion is active while old_price is set and discount_ends_at is unset
+// or still in the future. Once it has expired the public API serves the
+// regular price (old_price becomes price) and drops old_price and
+// discount_ends_at, so the frontend needs no date logic and the site keeps
+// reading `price`. The admin API returns the stored values untouched.
+const PASS_SELECT = `
+  id, slug, name, description, features,
+  (CASE WHEN old_price IS NOT NULL AND discount_ends_at <= NOW() THEN old_price ELSE price END)::float8 AS price,
+  (CASE WHEN discount_ends_at <= NOW() THEN NULL ELSE old_price END)::float8 AS old_price,
+  (CASE WHEN discount_ends_at <= NOW() THEN NULL ELSE discount_ends_at END) AS discount_ends_at,
+  currency, duration, is_featured, buy_url, source, sort_order,
+  created_at, updated_at`;
+
 // GET /api/passes?lang=az|en|ru
 // Published only, ordered by sort_order. Same contract as the other
 // collections — with ?lang= the trilingual JSONB fields (including each
@@ -741,10 +758,7 @@ app.get('/api/passes', async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, slug, name, description, features,
-              price::float8 AS price, currency, duration,
-              is_featured, buy_url, source, sort_order,
-              created_at, updated_at
+      `SELECT ${PASS_SELECT}
          FROM passes
         WHERE is_published = TRUE
         ORDER BY sort_order ASC, id ASC`
@@ -771,10 +785,7 @@ app.get('/api/passes/:slug', async (req, res) => {
 
   try {
     const { rows } = await pool.query(
-      `SELECT id, slug, name, description, features,
-              price::float8 AS price, currency, duration,
-              is_featured, buy_url, source, sort_order,
-              created_at, updated_at
+      `SELECT ${PASS_SELECT}
          FROM passes
         WHERE slug = $1 AND is_published = TRUE
         LIMIT 1`,

@@ -290,6 +290,8 @@ returned.
         { "label": "AR Time Machine experience", "included": false }
       ],
       "price": 42,
+      "old_price": 60,
+      "discount_ends_at": "2026-12-31T19:59:00.000Z",
       "currency": "AZN",
       "duration": "24h",
       "is_featured": true,
@@ -305,6 +307,15 @@ returned.
 `included` are plain values (not trilingual) — only `name`, `description` and
 each feature's `label` are localized per `{az, en, ru}`. `features` is a JSONB
 array and its order is the display order (no separate per-feature sort key).
+**Discounts.** `price` is always the current price the site should show.
+`old_price` is the crossed-out regular price — `null` when there is no
+discount — and `discount_ends_at` (ISO 8601, optional) is when the promotion
+expires. The public API handles expiry itself: once `discount_ends_at` has
+passed it serves `price = old_price` and `old_price = discount_ends_at = null`,
+so the frontend needs no date logic. The admin API returns the stored values
+untouched. Writes are rejected with `400` unless `old_price > price`, and
+`discount_ends_at` requires `old_price`.
+
 `price` is stored as `NUMERIC(10, 2)` but cast to `float8` on the way out, so
 it arrives as a JSON number (node-pg would otherwise serialize `NUMERIC` as a
 string).
@@ -569,7 +580,9 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `name` | JSONB | `{az, en, ru}` |
 | `description` | JSONB | `{az, en, ru}`, subtitle/tagline |
 | `features` | JSONB | array of `{label: {az,en,ru}, included: boolean}`; array order is display order |
-| `price` | NUMERIC(10,2) | served as a JSON number (cast to `float8`) |
+| `price` | NUMERIC(10,2) | current (possibly discounted) price, served as a JSON number (cast to `float8`) |
+| `old_price` | NUMERIC(10,2) | `010_add_pass_discount.sql`: crossed-out regular price, `NULL` = no discount; CHECK `old_price > price` |
+| `discount_ends_at` | TIMESTAMPTZ | `010_add_pass_discount.sql`: optional promotion expiry; CHECK requires `old_price` |
 | `currency` | TEXT | plain string, e.g. `AZN` |
 | `duration` | TEXT | plain string, e.g. `24h` |
 | `is_featured` | BOOLEAN | default `FALSE` |
