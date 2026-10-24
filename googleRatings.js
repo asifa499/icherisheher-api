@@ -118,4 +118,17 @@ function mockFetch(url, opts = {}) {
   return ok({ rating: 4.56, userRatingCount: 1234 });
 }
 
-module.exports = { fetchRating, searchPlace, refreshRatings, mockFetch, RATING_FIELD_MASK };
+// Google rating when we have one, otherwise the static seed rating.
+// google_rating is selected as float8 so it is a JS number, like `rating`.
+function ratingFields(row) {
+  if (row.google_rating !== null && row.google_rating !== undefined) {
+    return {
+      rating: row.google_rating,
+      rating_count: row.google_rating_count ?? null,
+      rating_source: 'google',
+    };
+  }
+  return { rating: row.rating, rating_count: null, rating_source: 'seed' };
+}
+
+module.exports = { ratingFields, fetchRating, searchPlace, refreshRatings, mockFetch, RATING_FIELD_MASK };

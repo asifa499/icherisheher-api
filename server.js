@@ -5,6 +5,7 @@ const pool = require('./db');
 const { ensureDatabaseSetup } = require('./db-setup');
 const { uploadsRouter } = require('./uploads');
 const { adminRouter, adminEndpoints } = require('./admin');
+const { ratingFields } = require('./googleRatings');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -66,7 +67,7 @@ function localizeMuseum(row, lang) {
     short_description: pickLang(row.short_description, lang),
     image: row.image,
     working_hours: row.working_hours,
-    rating: row.rating,
+    ...ratingFields(row),
     ticket_price: row.ticket_price,
     address: pickLang(row.address, lang),
     ticket_url: row.ticket_url,
@@ -83,7 +84,7 @@ function fullMuseum(row) {
     short_description: row.short_description,
     image: row.image,
     working_hours: row.working_hours,
-    rating: row.rating,
+    ...ratingFields(row),
     ticket_price: row.ticket_price,
     address: row.address,
     ticket_url: row.ticket_url,
@@ -397,6 +398,7 @@ app.get('/api/museums', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, name, short_description, address, sort_order,
               image, working_hours, rating, ticket_price, ticket_url,
+              google_rating::float8 AS google_rating, google_rating_count,
               source, created_at, updated_at
          FROM museums
         WHERE is_published = TRUE
@@ -426,6 +428,7 @@ app.get('/api/museums/:slug', async (req, res) => {
     const { rows } = await pool.query(
       `SELECT id, slug, name, short_description, address, sort_order,
               image, working_hours, rating, ticket_price, ticket_url,
+              google_rating::float8 AS google_rating, google_rating_count,
               source, created_at, updated_at
          FROM museums
         WHERE slug = $1 AND is_published = TRUE
