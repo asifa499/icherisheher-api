@@ -18,6 +18,7 @@ Node.js + Express + PostgreSQL (Railway). Serves trilingual (az / en / ru) museu
 | `ADMIN_API_KEY` | — | Secret required in the `X-Admin-Key` header for every admin endpoint (writes + `POST /api/upload`). If unset, admin endpoints return `503`. Never commit or log it. |
 | `UPLOAD_DIR` | — | Where uploaded images are stored. Defaults to `/data/uploads` — on Railway, attach a volume mounted at `/data` so files survive redeploys. |
 | `PUBLIC_BASE_URL` | — | Origin used to build the absolute `url` returned by uploads (e.g. `https://icherisheher-api-production.up.railway.app`). Falls back to Railway's `RAILWAY_PUBLIC_DOMAIN`, then the request's own host. |
+| `GOOGLE_PLACES_KEY` | — | Google Places API (New) key, used server-side only by `googleRatings.js` (the frontend never calls Google). Without it, ratings are simply not refreshed and the API serves the seed rating. Never commit or log it. |
 
 Local development: copy `.env.example` → `.env` and fill in `DATABASE_URL`.
 
@@ -79,6 +80,8 @@ Published museums only (`is_published = TRUE`), ordered by `sort_order`.
       "image": "assets/img/museum-hammam.jpg",
       "working_hours": "09:00 – 18:00",
       "rating": 4.9,
+      "rating_count": null,
+      "rating_source": "seed",
       "ticket_price": "From 10 AZN per person",
       "address": "50, Boyuk Gala Street",
       "ticket_url": "#",
@@ -88,6 +91,10 @@ Published museums only (`is_published = TRUE`), ordered by `sort_order`.
   ]
 }
 ```
+
+`rating` is the Google rating when one is stored, otherwise the static seed
+value. `rating_count` is the number of Google ratings (`null` for seed) and
+`rating_source` is `"google"` or `"seed"`. See [Google ratings](#google-ratings).
 
 `image`, `working_hours`, `rating`, `ticket_price` and `ticket_url` are plain
 values (not trilingual) — only `name`, `short_description` and `address` are
@@ -479,7 +486,11 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `address` | JSONB | `{az, en, ru}` |
 | `image` | TEXT | plain string, not localized |
 | `working_hours` | TEXT | plain string, not localized |
-| `rating` | REAL | numeric, e.g. `4.9` |
+| `rating` | REAL | numeric, e.g. `4.9` — static seed value, fallback for Google |
+| `google_place_id` | TEXT | Google place id (see `scripts/find-place-ids.js`) |
+| `google_rating` | NUMERIC(2,1) | 0–5, written by the daily refresh |
+| `google_rating_count` | INTEGER | number of Google ratings |
+| `google_rating_updated_at` | TIMESTAMPTZ | last successful refresh |
 | `ticket_price` | TEXT | plain string, not localized |
 | `ticket_url` | TEXT | plain string, not localized |
 | `is_published` | BOOLEAN | default `TRUE` |
@@ -604,6 +615,26 @@ adds the `source` ownership column (above) to all six content tables.
 | `key` | TEXT PK | section name, e.g. `hero` / `museums` / `citypass` |
 | `enabled` | BOOLEAN | default `TRUE` |
 | `updated_at` | TIMESTAMPTZ | auto-updated by trigger |
+
+## Google ratings
+
+**Mode A — stored daily ratings** (chosen). Ratings are fetched from Google
+Places API (New) on the backend, saved on the `museums` row and served from the
+database; the frontend never calls Google. Only `rating,userRatingCount` are
+requested. If a fetch fails the stored value is kept (never overwritten with
+null) and the job moves on to the next place.
+
+1. Set `GOOGLE_PLACES_KEY` on the API service.
+2. One-time: `npm run find-place-ids` prints the top Text Search candidate per
+   museum (name, address, place id) and writes nothing. Review it, then run
+   `npm run find-place-ids -- --write` to save the ids.
+3. Daily: add a **Cron** service in Railway from this repo with start command
+   `node scripts/refresh-ratings.js`, schedule `0 3 * * *`, and the same
+   `DATABASE_URL` and `GOOGLE_PLACES_KEY` variables.
+
+Both scripts accept `--mock` (canned responses, no Google calls);
+`refresh-ratings.js` also accepts `--dry-run` (fetch and print, no DB writes).
+`npm test` runs the mocked unit tests (no network or database).
 
 ## Deploy to Railway
 
