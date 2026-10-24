@@ -230,9 +230,12 @@ async function seedRoutes(client) {
     await client.query(
       `INSERT INTO routes (
          slug, title, duration, distance, tags, stops,
-         image, pass_url, origin, is_published, sort_order
+         image, pass_url, origin, is_published, sort_order,
+         type, mode, working_hours, rating, short_description, address,
+         price, book_url, title_width
        )
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,
+               $12, $13, $14, $15, $16, $17, $18, $19, $20)
        ON CONFLICT (slug) DO UPDATE SET
          title        = EXCLUDED.title,
          duration     = EXCLUDED.duration,
@@ -243,7 +246,16 @@ async function seedRoutes(client) {
          pass_url     = EXCLUDED.pass_url,
          origin       = EXCLUDED.origin,
          is_published = EXCLUDED.is_published,
-         sort_order   = EXCLUDED.sort_order
+         sort_order   = EXCLUDED.sort_order,
+         type         = EXCLUDED.type,
+         mode         = EXCLUDED.mode,
+         working_hours = EXCLUDED.working_hours,
+         rating       = EXCLUDED.rating,
+         short_description = EXCLUDED.short_description,
+         address      = EXCLUDED.address,
+         price        = EXCLUDED.price,
+         book_url     = EXCLUDED.book_url,
+         title_width  = EXCLUDED.title_width
        WHERE routes.source = 'seed'`,
       [
         r.slug,
@@ -257,6 +269,15 @@ async function seedRoutes(client) {
         r.origin ?? r.source ?? null,
         r.is_published !== false,
         Number.isInteger(r.sort_order) ? r.sort_order : i + 1,
+        r.type ?? null,
+        r.mode ?? null,
+        r.working_hours ?? null,
+        r.rating ?? null,
+        JSON.stringify(r.short_description || {}),
+        JSON.stringify(r.address || {}),
+        JSON.stringify(r.price || {}),
+        r.book_url ?? null,
+        Number.isInteger(r.title_width) ? r.title_width : null,
       ]
     );
     console.log(`\u2713 ${r.slug}`);

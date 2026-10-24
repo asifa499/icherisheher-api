@@ -120,7 +120,16 @@ stop; without `?lang=` the full trilingual objects are returned.
       "title": "First time · 1 day",
       "duration": "4–5 hours",
       "distance": "2.1 km loop",
-      "tags": ["first-time", "classic", "walking"],
+      "tags": ["first-time", "group"],
+      "type": "restaurant",
+      "mode": "private",
+      "working_hours": "09:00 – 18:00",
+      "rating": 4.9,
+      "short_description": "The famous Turkish traveler Ovliya Chelebi stayed in Baku for 10 days in 1647 and in his...",
+      "address": "9 Hagigat Rzayeva Street",
+      "price": "From 20 AZN per person",
+      "book_url": "#",
+      "title_width": 323,
       "stops": [
         {
           "name": "Qoşa Qala Gates",
@@ -139,9 +148,13 @@ stop; without `?lang=` the full trilingual objects are returned.
 }
 ```
 
-`image`, `pass_url`, `origin` and `source` are plain values (not trilingual) — only
-`title`, `duration`, `distance` and each stop's `name` / `description` are
-localized per `{az, en, ru}`. `tags` is a plain string array.
+`image`, `pass_url`, `book_url`, `origin`, `source`, `type`, `mode`,
+`working_hours`, `rating` and `title_width` are plain values (not trilingual) —
+`title`, `duration`, `distance`, `short_description`, `address`, `price` and each
+stop's `name` / `description` are localized per `{az, en, ru}`. `tags` is a plain
+string array (Home tabs: `first-time`, `group`, `private`, `qala`). `type` is
+`restaurant | museums | walk`, `mode` is `private | group | walk` (lowercase keys
+the frontend maps to i18n labels/icons); `rating` is a number.
 
 ### `GET /api/routes/:slug?lang=az|en|ru`
 Single published route by slug. `404` if missing or unpublished.
@@ -510,6 +523,15 @@ Requests without an `Origin` header (curl, health checks) are allowed.
 | `distance` | JSONB | `{az, en, ru}` |
 | `tags` | JSONB | string array, default `[]` |
 | `stops` | JSONB | array of `{name: {az,en,ru}, description: {az,en,ru}, image, sort_order}` |
+| `type` | TEXT | `restaurant` \| `museums` \| `walk` (migration 012) |
+| `mode` | TEXT | `private` \| `group` \| `walk` |
+| `working_hours` | TEXT | e.g. `09:00 – 18:00` |
+| `rating` | REAL | number 0–5 |
+| `short_description` | JSONB | `{az, en, ru}` |
+| `address` | JSONB | `{az, en, ru}` |
+| `price` | JSONB | `{az, en, ru}` display text, e.g. "From 20 AZN per person" |
+| `book_url` | TEXT | plain string |
+| `title_width` | INTEGER | card title max-width in px (design detail) |
 | `image` | TEXT | plain string, not localized |
 | `pass_url` | TEXT | plain string, not localized |
 | `origin` | TEXT | provenance tag, e.g. `figma` / `draft` (was `source` before migration 009) |

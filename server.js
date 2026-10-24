@@ -112,6 +112,15 @@ function localizeRoute(row, lang) {
     duration: pickLang(row.duration, lang),
     distance: pickLang(row.distance, lang),
     tags: row.tags,
+    type: row.type,
+    mode: row.mode,
+    working_hours: row.working_hours,
+    rating: row.rating,
+    short_description: pickLang(row.short_description, lang),
+    address: pickLang(row.address, lang),
+    price: pickLang(row.price, lang),
+    book_url: row.book_url,
+    title_width: row.title_width,
     stops: (row.stops || []).map((s) => localizeStop(s, lang)),
     image: row.image,
     pass_url: row.pass_url,
@@ -129,6 +138,15 @@ function fullRoute(row) {
     duration: row.duration,
     distance: row.distance,
     tags: row.tags,
+    type: row.type,
+    mode: row.mode,
+    working_hours: row.working_hours,
+    rating: row.rating,
+    short_description: row.short_description,
+    address: row.address,
+    price: row.price,
+    book_url: row.book_url,
+    title_width: row.title_width,
     stops: row.stops,
     image: row.image,
     pass_url: row.pass_url,
@@ -464,6 +482,8 @@ app.get('/api/routes', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, title, duration, distance, tags, stops,
+              type, mode, working_hours, rating, short_description, address,
+              price, book_url, title_width,
               image, pass_url, origin, source, sort_order,
               created_at, updated_at
          FROM routes
@@ -493,6 +513,8 @@ app.get('/api/routes/:slug', async (req, res) => {
   try {
     const { rows } = await pool.query(
       `SELECT id, slug, title, duration, distance, tags, stops,
+              type, mode, working_hours, rating, short_description, address,
+              price, book_url, title_width,
               image, pass_url, origin, source, sort_order,
               created_at, updated_at
          FROM routes
