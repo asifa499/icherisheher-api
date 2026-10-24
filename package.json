@@ -10,7 +10,10 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "migrate": "node scripts/migrate.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "refresh-ratings": "node scripts/refresh-ratings.js",
+    "find-place-ids": "node scripts/find-place-ids.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
