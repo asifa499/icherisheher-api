@@ -22,6 +22,8 @@ const FEATURE_FLAG_SECTIONS = [
   'resources',
   'nearby',
   'citypass',
+  'collections',
+  'inspire',
   'appar',
   'social',
   'footer',

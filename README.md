@@ -359,6 +359,8 @@ are plain booleans.
     "resources": true,
     "nearby": true,
     "citypass": true,
+    "collections": true,
+    "inspire": true,
     "appar": true,
     "social": true,
     "footer": true
